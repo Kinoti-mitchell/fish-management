@@ -481,31 +481,31 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-6">
               <ImageWithFallback
-                src="/fish-management/5.jpg"
+                src="/fish-management/build/5.jpg"
                 alt="Fish processing warehouse"
                 className="rounded-lg shadow-md w-full h-64 object-cover"
               />
               <ImageWithFallback
-                src="/fish-management/1.jpg"
+                src="/fish-management/build/1.jpg"
                 alt="Fresh fish processing"
                 className="rounded-lg shadow-md w-full h-48 object-cover"
               />
             </div>
             <div className="space-y-6">
               <ImageWithFallback
-                src="/fish-management/2.jpg"
+                src="/fish-management/build/2.jpg"
                 alt="Cold storage facility"
                 className="rounded-lg shadow-md w-full h-48 object-cover"
               />
               <ImageWithFallback
-                src="/fish-management/3.jpeg"
+                src="/fish-management/build/3.jpeg"
                 alt="Quality control process"
                 className="rounded-lg shadow-md w-full h-64 object-cover"
               />
             </div>
             <div className="space-y-6">
               <ImageWithFallback
-                src="/fish-management/process4.jpg"
+                src="/fish-management/build/process4.jpg"
                 alt="Fish warehouse operations"
                 className="rounded-lg shadow-md w-full h-64 object-cover"
               />
