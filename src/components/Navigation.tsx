@@ -298,7 +298,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
           <div className="flex items-center justify-center">
             <div className="w-52 h-20">
               <img 
-                src="/fish-management/riofish-logo.png" 
+                src="/fish-management/build/riofish-logo.png" 
                 alt="Rio Fish Logo" 
                 className="w-full h-full object-contain drop-shadow-sm"
                 style={{ imageRendering: 'crisp-edges' }}
@@ -348,7 +348,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                 <div className="flex items-center justify-center">
                   <div className="w-52 h-20">
                     <img 
-                      src="/fish-management/riofish-logo.png" 
+                      src="/fish-management/build/riofish-logo.png" 
                       alt="Rio Fish Logo" 
                       className="w-full h-full object-contain drop-shadow-sm"
                       style={{ imageRendering: 'crisp-edges' }}
