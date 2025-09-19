@@ -32,7 +32,7 @@ app.use("*", async (c, next) => {
 app.use(
   "/*",
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001", "https://myfishapp.com"], // restrict in prod
+    origin: ["http://localhost:3000", "http://localhost:3001", "https://kinoti-mitchell.github.io"], // restrict in prod
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   }),
