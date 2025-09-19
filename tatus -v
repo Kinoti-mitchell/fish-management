@@ -1,0 +1,5 @@
+[33me0564e78[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mgh-pages[m[33m)[m update
+[33m349e49ae[m[33m ([m[1;31morigin/gh-pages[m[33m)[m Update build with correct asset paths for GitHub Pages
+[33m3c75b3bf[m Fix logo path and update build files
+[33mdd15fcc2[m Clean up repository: remove duplicate files and build artifacts
+[33mc8fe9ed5[m Deploy working build with correct asset paths

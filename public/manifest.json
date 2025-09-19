@@ -1,0 +1,27 @@
+{
+  "name": "Rio Fish Farm - Kenya Operations",
+  "short_name": "Rio Fish",
+  "description": "Fish Management PWA for Rio Fish Farm Kenya Operations",
+  "start_url": "/fish-management/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/fish-management/rio-fish-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/fish-management/rio-fish-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}
