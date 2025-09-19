@@ -229,7 +229,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <div className="flex items-center gap-6">
               <div className="w-64 h-40 flex-shrink-0">
                 <img 
-                  src="/fish-management/build/riofish-logo.png" 
+                  src="/fish-management/riofish-logo.png" 
                   alt="Rio Fish Logo" 
                   className="w-full h-full object-contain"
                   style={{ imageRendering: 'crisp-edges' }}

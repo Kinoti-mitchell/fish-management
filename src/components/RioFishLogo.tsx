@@ -30,7 +30,7 @@ export const RioFishLogo: React.FC<RioFishLogoProps> = ({
       {/* Rio Fish Logo - Using original website logo */}
       <div className={`${sizeClasses[size]} flex-shrink-0`}>
         <img 
-          src="/fish-management/build/riofish-logo.png"
+          src="/fish-management/riofish-logo.png"
           alt="Rio Fish Logo"
           className="w-full h-full object-contain"
           style={{ imageRendering: 'crisp-edges' }}
