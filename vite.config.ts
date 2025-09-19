@@ -51,7 +51,7 @@ export default defineConfig({
     //   }
     // })
   ],
-    base: '/',
+    base: '/fish-management/',
     build: {
       target: 'esnext',
       outDir: 'build',
