@@ -67,6 +67,7 @@
     "start:server": "deno run -A server/server.ts",
     "preview": "vite preview"
   },
+  "homepage": "https://kinoti-mitchell.github.io/fish-management",
   "description": "This is a code bundle for Fish Management PWA. The original project is available at https://www.figma.com/design/j8WwJvFPJsoMugvugloj8I/Fish-Management-PWA.",
   "main": "index.js",
   "keywords": [],
