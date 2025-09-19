@@ -1,15 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Rio Fish Farm - Kenya Operations</title>
-    <script type="text/javascript">
-      // Single Page Apps for GitHub Pages
-      // MIT License
-      // https://github.com/rafgraph/spa-github-pages
-      // This script takes the current url and converts the path and query
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Rio Fish" />
+    <meta name="msapplication-TileColor" content="#1e40af" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Icons and Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/rio-fish-logo.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script type="module" crossorigin src="/assets/index-Db7cpmf7.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-BXHkNvu0.js">
+    <link rel="modulepreload" crossorigin href="/assets/app-fOhQDPXN.js">
+    <link rel="stylesheet" crossorigin href="/assets/app-UdRR5Yil.css">
+    
+    <script>
+      // GitHub Pages SPA redirect
+      // This script takes the current URL and converts the path and query
       // string into just a query string, and then redirects the browser
-      // to the new url with only a query string and hash fragment,
+      // to the new URL with only a query string and hash fragment,
       // e.g. https://www.foo.tld/one/two?a=b&c=d#qwe, becomes
       // https://www.foo.tld/?/one/two&a=b~and~c=d#qwe
       // Note: this 404.html file must be at least 512 bytes for it to work
@@ -34,6 +56,8 @@
       );
     </script>
   </head>
+
   <body>
+    <div id="root"></div>
   </body>
 </html>
