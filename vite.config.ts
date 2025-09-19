@@ -51,7 +51,7 @@ export default defineConfig({
     //   }
     // })
   ],
-    base: process.env.NODE_ENV === 'production' ? '/fish-management/' : '/',
+    base: '/',
     build: {
       target: 'esnext',
       outDir: 'build',

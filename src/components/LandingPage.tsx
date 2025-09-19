@@ -18,11 +18,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
   // Hero section images
   const heroImages = [
-    "/fish-management/login-image.jpeg",
-    "/fish-management/fishpic.jpg",
-    "/fish-management/papo1.jpg",
-    "/fish-management/papo2.jpg",
-    "/fish-management/papo4.png"
+    "/login-image.jpeg",
+    "/fishpic.jpg",
+    "/papo1.jpg",
+    "/papo2.jpg",
+    "/papo4.png"
   ];
 
   // Target values for counting animation
@@ -138,22 +138,22 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
     {
       name: "Tilapia",
       description: "Mild, sweet flavor with lean, white flesh. Perfect for grilling, baking, or frying.",
-      image: "/fish-management/tilapia.jpg"
+      image: "/tilapia.jpg"
     },
     {
       name: "Nile Perch",
       description: "Succulent and tender meat with rich taste and firm texture for gourmet meals.",
-      image: "/fish-management/papo2.jpg"
+      image: "/papo2.jpg"
     },
     {
       name: "Smoked Fish",
       description: "Traditional smoking process that enhances flavor while preserving nutritional value.",
-      image: "/fish-management/papo4.png"
+      image: "/papo4.png"
     },
     {
       name: "Fish Sausages",
       description: "Artisan fish sausages crafted with locally sourced fish and perfectly seasoned pastry.",
-      image: "/fish-management/saus.jpeg"
+      image: "/saus.jpeg"
     }
   ];
 
@@ -366,7 +366,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               />
               <div className="absolute -bottom-6 -right-6 w-32 h-32 hidden md:block">
                 <ImageWithFallback
-                  src="/fish-management/fishpic.jpg"
+                  src="/fishpic.jpg"
                   alt="Fish warehouse storage"
                   className="rounded-lg shadow-lg w-full h-full object-cover"
                 />
@@ -575,13 +575,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             
             <div className="relative">
               <ImageWithFallback
-                src="/fish-management/papo1.jpg"
+                src="/papo1.jpg"
                 alt="Rio Fish team and operations"
                 className="rounded-lg shadow-xl w-full"
               />
               <div className="absolute -bottom-6 -left-6 w-32 h-32 hidden md:block">
                 <ImageWithFallback
-                  src="/fish-management/papo2.jpg"
+                  src="/papo2.jpg"
                   alt="Fresh fish processing"
                   className="rounded-lg shadow-lg w-full h-full object-cover"
                 />
