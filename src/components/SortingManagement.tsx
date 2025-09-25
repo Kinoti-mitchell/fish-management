@@ -995,21 +995,24 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
               )}
 
               {/* Storage Location Information */}
-              {selectedBatch.storage_location_id && (
-                <div className="p-4 bg-indigo-50 rounded-lg">
-                  <h4 className="font-medium text-indigo-900 mb-3">Storage Information</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-indigo-700">
-                    <div>
-                      <span className="font-medium">Storage Location ID:</span> 
-                      <span className="ml-2 font-mono text-xs">{selectedBatch.storage_location_id}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Stored Date:</span> 
-                      <span className="ml-2">{new Date(selectedBatch.created_at).toLocaleDateString()}</span>
+              {selectedBatch.storage_location_id && (() => {
+                const storageLocation = storageLocations.find(loc => loc.id === selectedBatch.storage_location_id);
+                return (
+                  <div className="p-4 bg-indigo-50 rounded-lg">
+                    <h4 className="font-medium text-indigo-900 mb-3">Storage Information</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-indigo-700">
+                      <div>
+                        <span className="font-medium">Storage Location:</span> 
+                        <span className="ml-2">{storageLocation?.name || 'Unknown Storage'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Stored Date:</span> 
+                        <span className="ml-2">{new Date(selectedBatch.created_at).toLocaleDateString()}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Size Distribution */}
               {((selectedBatch.size_distribution && Object.keys(selectedBatch.size_distribution).length > 0) || 
