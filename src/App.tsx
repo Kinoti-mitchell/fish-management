@@ -244,9 +244,9 @@ function AppContent() {
   // For testing, always show the app regardless of user state
   console.log('AppContent: Rendering main app, user:', user, 'appState:', appState);
 
-  // Main Application
+  // Main Application - Clean dashboard layout like Meru Craft Collect
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <Navigation 
         currentSection={currentSection} 
         onNavigate={(section) => setCurrentSection(section)}
@@ -256,36 +256,23 @@ function AppContent() {
         }}
       />
       
-      {/* Main content - 75% of screen width, no spillage */}
+      {/* Main content area - Clean dashboard layout */}
       <main className="
         w-full
         min-h-screen
         pt-16
         md:pt-0
-        md:ml-[15vw]
-        md:max-ml-[240px]
-        md:min-ml-[200px]
-        md:w-[85vw]
-        md:max-w-[calc(100vw-200px)]
-        md:min-w-[calc(100vw-240px)]
-        overflow-x-hidden
-        overflow-y-auto
-        safe-area-inset-left
-        safe-area-inset-right
-        box-border
+        md:ml-64
+        transition-all
+        duration-300
+        ease-in-out
       ">
         <div className="
           w-full
           h-full
-          max-w-full
-          p-3
-          sm:p-4
-          md:p-6
-          lg:p-8
-          xl:p-10
+          p-6
+          max-w-7xl
           mx-auto
-          box-border
-          overflow-x-hidden
         ">
           <AppContentRenderer
             currentSection={currentSection}
