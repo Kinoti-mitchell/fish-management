@@ -253,41 +253,66 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     setCreatingDisposal(true);
 
     try {
-      // Generate disposal number first
-      const { data: disposalNumber, error: numberError } = await supabase
-        .rpc('generate_disposal_number');
-      
-      if (numberError) {
-        console.error("Error generating disposal number:", numberError);
-        throw numberError;
-      }
+      console.log('🔍 [DisposalManagement] Starting disposal creation...');
+      console.log('📊 [DisposalManagement] Selected reason:', selectedReason);
+      console.log('📊 [DisposalManagement] Selected items:', selectedItems.length);
+      console.log('📊 [DisposalManagement] User ID:', user?.id);
 
-      // First create the disposal record
+      // Verify disposal reason exists
+      const reasonExists = disposalReasons.find(reason => reason.id === selectedReason);
+      if (!reasonExists) {
+        console.error('❌ [DisposalManagement] Disposal reason not found:', selectedReason);
+        toast.error('Selected disposal reason is invalid. Please refresh and try again.');
+        return;
+      }
+      console.log('✅ [DisposalManagement] Disposal reason verified:', reasonExists.name);
+
+      // Generate a simple disposal number instead of using RPC
+      const timestamp = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 14);
+      const disposalNumber = `DISPOSAL-${timestamp}`;
+      
+      console.log('📊 [DisposalManagement] Generated disposal number:', disposalNumber);
+
+      // First create the disposal record with better error handling
+      const disposalRecordData = {
+        disposal_number: disposalNumber,
+        disposal_reason_id: selectedReason,
+        disposal_method: disposalMethod,
+        disposal_location: disposalLocation || null,
+        disposal_cost: disposalCost || 0,
+        notes: notes || null,
+        disposed_by: user?.id || null,
+        status: 'pending',
+        total_weight_kg: 0 // Will be calculated
+      };
+
+      console.log('📊 [DisposalManagement] Disposal record data:', disposalRecordData);
+
       const { data: disposalData, error: disposalError } = await supabase
         .from('disposal_records')
-        .insert({
-          disposal_number: disposalNumber,
-          disposal_reason_id: selectedReason,
-          disposal_method: disposalMethod,
-          disposal_location: disposalLocation || null,
-          disposal_cost: disposalCost,
-          notes: notes || null,
-          disposed_by: user?.id || null, // Use logged-in user's ID
-          status: 'pending',
-          total_weight_kg: 0 // Will be calculated
-        })
+        .insert(disposalRecordData)
         .select()
         .single();
 
       if (disposalError) {
-        console.error("Error creating disposal record:", disposalError);
+        console.error("❌ [DisposalManagement] Error creating disposal record:", disposalError);
+        console.error("❌ [DisposalManagement] Error details:", {
+          code: disposalError.code,
+          message: disposalError.message,
+          details: disposalError.details,
+          hint: disposalError.hint
+        });
         throw disposalError;
       }
+
+      console.log('✅ [DisposalManagement] Disposal record created:', disposalData);
 
       // Then add the selected items to the disposal
       const selectedInventoryItems = inventoryForDisposal.filter(item => 
         selectedItems.includes(item.sorting_result_id)
       );
+
+      console.log('📊 [DisposalManagement] Selected inventory items:', selectedInventoryItems.length);
 
       let totalWeight = 0;
 
@@ -295,25 +320,35 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
         const weightKg = item.total_weight_grams / 1000;
         totalWeight += weightKg;
         
-        console.log(`Adding item to disposal: ${item.batch_number} Size ${item.size_class} - ${weightKg}kg (${item.total_weight_grams}g)`);
+        console.log(`📦 [DisposalManagement] Adding item to disposal: ${item.batch_number} Size ${item.size_class} - ${weightKg}kg (${item.total_weight_grams}g)`);
+
+        const disposalItemData = {
+          disposal_record_id: disposalData.id,
+          sorting_result_id: item.sorting_result_id,
+          size_class: item.size_class,
+          weight_kg: weightKg,
+          batch_number: item.batch_number,
+          storage_location_name: item.storage_location_name,
+          farmer_name: item.farmer_name,
+          processing_date: item.processing_date,
+          quality_notes: item.quality_notes,
+          disposal_reason: item.disposal_reason
+        };
+
+        console.log('📊 [DisposalManagement] Disposal item data:', disposalItemData);
 
         const { error: itemError } = await supabase
           .from('disposal_items')
-          .insert({
-            disposal_record_id: disposalData.id,
-            sorting_result_id: item.sorting_result_id,
-            size_class: item.size_class,
-            weight_kg: weightKg,
-            batch_number: item.batch_number,
-            storage_location_name: item.storage_location_name,
-            farmer_name: item.farmer_name,
-            processing_date: item.processing_date,
-            quality_notes: item.quality_notes,
-            disposal_reason: item.disposal_reason
-          });
+          .insert(disposalItemData);
 
         if (itemError) {
-          console.error("Error creating disposal item:", itemError);
+          console.error("❌ [DisposalManagement] Error creating disposal item:", itemError);
+          console.error("❌ [DisposalManagement] Item error details:", {
+            code: itemError.code,
+            message: itemError.message,
+            details: itemError.details,
+            hint: itemError.hint
+          });
           throw itemError;
         }
       }
