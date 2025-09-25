@@ -6495,12 +6495,26 @@
 /* Ensure proper z-index stacking like Meru Craft Collect */
 .navigation-container {
   z-index: 50 !important;
-  position: relative;
+  position: fixed !important;
 }
 
 .main-content {
   z-index: 10 !important;
   position: relative;
+  margin-left: 0 !important;
+}
+
+/* Desktop navigation spacing */
+@media (min-width: 1024px) {
+  .main-content {
+    margin-left: 16rem !important; /* 256px = w-64 */
+  }
+}
+
+@media (min-width: 1280px) {
+  .main-content {
+    margin-left: 18rem !important; /* 288px = w-72 */
+  }
 }
 
 /* Prevent content from going under navigation on zoom */
@@ -6512,4 +6526,10 @@
   .navigation-container {
     z-index: 60 !important;
   }
+}
+
+/* Force proper positioning for all screen sizes */
+.content-container {
+  position: relative !important;
+  z-index: 1 !important;
 }

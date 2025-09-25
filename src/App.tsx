@@ -262,9 +262,6 @@ function AppContent() {
         min-h-screen
         pt-16
         sm:pt-20
-        lg:pt-0
-        lg:ml-64
-        xl:ml-72
         transition-all
         duration-300
         ease-in-out
