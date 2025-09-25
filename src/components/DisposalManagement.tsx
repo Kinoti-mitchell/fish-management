@@ -88,9 +88,10 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     loadData();
   }, []);
 
-  // Auto-set date range when daysOld changes
+  // Auto-set date range when daysOld changes (only for certain thresholds)
   useEffect(() => {
-    if (daysOld > 0) {
+    if (daysOld > 0 && daysOld <= 7) {
+      // For 1-7 days, auto-set the date range
       const today = new Date();
       const cutoffDate = new Date();
       cutoffDate.setDate(today.getDate() - daysOld);
@@ -98,11 +99,12 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
       // Set the date range to show items from cutoffDate to today
       setFromDate(cutoffDate.toISOString().split('T')[0]);
       setToDate(today.toISOString().split('T')[0]);
-    } else {
+    } else if (daysOld === 0) {
       // If daysOld is 0, clear the date range to show all items
       setFromDate("");
       setToDate("");
     }
+    // For daysOld > 7 (like 10, 30, etc.), allow manual date selection
   }, [daysOld]);
 
   const loadData = async () => {
@@ -587,7 +589,11 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                       <div className="grid grid-cols-1 gap-4">
                         <div>
                           <Label htmlFor="fromDate" className="text-sm font-medium">
-                            From Date {daysOld > 0 ? `(Auto-set to ${daysOld} days ago)` : '(Optional)'}
+                            From Date {
+                              daysOld === 0 ? '(Optional)' :
+                              daysOld <= 7 ? `(Auto-set to ${daysOld} days ago)` :
+                              `(Manual selection for ${daysOld}+ days)`
+                            }
                           </Label>
                           <Input
                             id="fromDate"
@@ -596,18 +602,24 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             onChange={(e) => setFromDate(e.target.value)}
                             className="mt-1"
                             max={new Date().toISOString().split('T')[0]}
-                            disabled={daysOld > 0}
+                            disabled={daysOld > 0 && daysOld <= 7}
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            {daysOld > 0 
-                              ? `Automatically set based on ${daysOld} days threshold`
-                              : 'Leave empty to show all items'
+                            {daysOld === 0 
+                              ? 'Leave empty to show all items'
+                              : daysOld <= 7 
+                                ? `Automatically set based on ${daysOld} days threshold`
+                                : `Select start date for items ${daysOld}+ days old`
                             }
                           </p>
                         </div>
                         <div>
                           <Label htmlFor="toDate" className="text-sm font-medium">
-                            To Date {daysOld > 0 ? '(Auto-set to today)' : '(Optional)'}
+                            To Date {
+                              daysOld === 0 ? '(Optional)' :
+                              daysOld <= 7 ? '(Auto-set to today)' :
+                              '(Manual selection)'
+                            }
                           </Label>
                           <Input
                             id="toDate"
@@ -616,12 +628,14 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             onChange={(e) => setToDate(e.target.value)}
                             className="mt-1"
                             max={new Date().toISOString().split('T')[0]}
-                            disabled={daysOld > 0}
+                            disabled={daysOld > 0 && daysOld <= 7}
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            {daysOld > 0 
-                              ? 'Automatically set to today'
-                              : 'Leave empty to show all items'
+                            {daysOld === 0 
+                              ? 'Leave empty to show all items'
+                              : daysOld <= 7 
+                                ? 'Automatically set to today'
+                                : 'Select end date for the range'
                             }
                           </p>
                         </div>
@@ -756,7 +770,9 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                       <Badge variant="outline" className="text-xs">
                         {daysOld === 0 
                           ? 'Showing all items (no age filter)' 
-                          : `Showing items ${daysOld}+ days old (${fromDate} to ${toDate})`
+                          : daysOld <= 7
+                            ? `Showing items ${daysOld}+ days old (auto-range: ${fromDate} to ${toDate})`
+                            : `Showing items ${daysOld}+ days old (manual range: ${fromDate || 'any'} to ${toDate || 'any'})`
                         }
                       </Badge>
                     </div>
