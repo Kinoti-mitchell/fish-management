@@ -18,11 +18,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
   // Hero section images
   const heroImages = [
-    "/fish-management/build/login-image.jpeg",
-    "/fish-management/build/fishpic.jpg",
-    "/fish-management/build/papo1.jpg",
-    "/fish-management/build/papo2.jpg",
-    "/fish-management/build/papo4.png"
+    "/fish-management/login-image.jpeg",
+    "/fish-management/fishpic.jpg",
+    "/fish-management/papo1.jpg",
+    "/fish-management/papo2.jpg",
+    "/fish-management/papo4.png"
   ];
 
   // Target values for counting animation
@@ -138,22 +138,22 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
     {
       name: "Tilapia",
       description: "Mild, sweet flavor with lean, white flesh. Perfect for grilling, baking, or frying.",
-      image: "/fish-management/build/tilapia.jpg"
+      image: "/fish-management/tilapia.jpg"
     },
     {
       name: "Nile Perch",
       description: "Succulent and tender meat with rich taste and firm texture for gourmet meals.",
-      image: "/fish-management/build/papo2.jpg"
+      image: "/fish-management/papo2.jpg"
     },
     {
       name: "Smoked Fish",
       description: "Traditional smoking process that enhances flavor while preserving nutritional value.",
-      image: "/fish-management/build/papo4.png"
+      image: "/fish-management/papo4.png"
     },
     {
       name: "Fish Sausages",
       description: "Artisan fish sausages crafted with locally sourced fish and perfectly seasoned pastry.",
-      image: "/fish-management/build/saus.jpeg"
+      image: "/fish-management/saus.jpeg"
     }
   ];
 
@@ -366,7 +366,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               />
               <div className="absolute -bottom-6 -right-6 w-32 h-32 hidden md:block">
                 <ImageWithFallback
-                  src="/fish-management/build/fishpic.jpg"
+                  src="/fish-management/fishpic.jpg"
                   alt="Fish warehouse storage"
                   className="rounded-lg shadow-lg w-full h-full object-cover"
                 />
@@ -481,36 +481,36 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-6">
               <ImageWithFallback
-                src="/fish-management/build/5.jpg"
+                src="/fish-management/5.jpg"
                 alt="Fish processing warehouse"
                 className="rounded-lg shadow-md w-full h-64 object-cover"
               />
               <ImageWithFallback
-                src="/fish-management/build/1.jpg"
+                src="/fish-management/1.jpg"
                 alt="Fresh fish processing"
                 className="rounded-lg shadow-md w-full h-48 object-cover"
               />
             </div>
             <div className="space-y-6">
               <ImageWithFallback
-                src="/fish-management/build/2.jpg"
+                src="/fish-management/2.jpg"
                 alt="Cold storage facility"
                 className="rounded-lg shadow-md w-full h-48 object-cover"
               />
               <ImageWithFallback
-                src="/fish-management/build/3.jpeg"
+                src="/fish-management/3.jpeg"
                 alt="Quality control process"
                 className="rounded-lg shadow-md w-full h-64 object-cover"
               />
             </div>
             <div className="space-y-6">
               <ImageWithFallback
-                src="/fish-management/build/process4.jpg"
+                src="/fish-management/process4.jpg"
                 alt="Fish warehouse operations"
                 className="rounded-lg shadow-md w-full h-64 object-cover"
               />
               <ImageWithFallback
-                src="/fish-management/build/fishpic.jpg"
+                src="/fish-management/fishpic.jpg"
                 alt="Fish distribution center"
                 className="rounded-lg shadow-md w-full h-48 object-cover"
               />
@@ -575,13 +575,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             
             <div className="relative">
               <ImageWithFallback
-                src="/fish-management/build/papo1.jpg"
+                src="/fish-management/papo1.jpg"
                 alt="Rio Fish team and operations"
                 className="rounded-lg shadow-xl w-full"
               />
               <div className="absolute -bottom-6 -left-6 w-32 h-32 hidden md:block">
                 <ImageWithFallback
-                  src="/fish-management/build/papo2.jpg"
+                  src="/fish-management/papo2.jpg"
                   alt="Fresh fish processing"
                   className="rounded-lg shadow-lg w-full h-full object-cover"
                 />

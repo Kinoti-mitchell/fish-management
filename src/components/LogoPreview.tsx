@@ -41,7 +41,7 @@ export const LogoPreview = () => {
         <div className="space-y-2">
           <p className="text-sm text-gray-600">Direct SVG (300x120)</p>
           <img 
-            src="/fish-management/build/riofish-logo.png" 
+            src="/fish-management/riofish-logo.png" 
             alt="Rio Fish Logo" 
             className="mx-auto"
             style={{ width: '300px', height: '120px' }}

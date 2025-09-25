@@ -42,7 +42,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       {/* Mobile: Full-width image with overlay text */}
       <div className="lg:hidden relative h-80 w-full">
         <ImageWithFallback
-          src="/fish-management/build/login-image.jpeg"
+          src="/fish-management/login-image.jpeg"
           alt="Fish farmers on Lake Victoria with traditional fishing boats"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -58,7 +58,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       {/* Desktop: Left Side - Image */}
       <div className="hidden lg:flex lg:w-3/4 relative">
         <ImageWithFallback
-          src="/fish-management/build/login-image.jpeg"
+          src="/fish-management/login-image.jpeg"
           alt="Fish farmers on Lake Victoria with traditional fishing boats"
           className="absolute inset-0 w-full h-full object-cover"
         />
