@@ -289,28 +289,28 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
   return (
     <>
       {/* Desktop Navigation - Responsive sidebar like Meru Craft Collect */}
-      <div className="
-        hidden 
-        lg:flex 
-        w-64
-        xl:w-72
-        bg-blue-600
-        border-r 
-        border-blue-800
-        flex-col 
-        fixed 
-        left-0 
-        top-0 
-        h-screen 
-        z-50 
-        shadow-lg
-        min-w-0
-        flex-shrink-0
-        isolate
-        navigation-container
-      ">
+        <div className="
+          hidden 
+          lg:flex 
+          w-64
+          xl:w-72
+          bg-white
+          border-r 
+          border-gray-200
+          flex-col 
+          fixed 
+          left-0 
+          top-0 
+          h-screen 
+          z-50 
+          shadow-lg
+          min-w-0
+          flex-shrink-0
+          isolate
+          navigation-container
+        ">
         {/* Professional header with logo like Meru Craft Collect */}
-        <div className="p-6 border-b border-blue-800 flex-shrink-0 bg-blue-600">
+        <div className="p-6 border-b border-gray-200 flex-shrink-0 bg-white">
           <div className="flex items-center">
             <div className="w-10 h-10 mr-4">
               <img 
@@ -325,15 +325,15 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                 }}
               />
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-white">Rio Fish Farm</h1>
-              <p className="text-sm text-blue-100">Kenya Operations</p>
-            </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">Rio Fish Farm</h1>
+                <p className="text-sm text-gray-500">Kenya Operations</p>
+              </div>
           </div>
         </div>
         
-        {/* Professional navigation content with blue background */}
-        <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-blue-600">
+          {/* Professional navigation content with white background */}
+          <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-white">
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -346,24 +346,17 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         </div>
       </div>
 
-      {/* Mobile Navigation - Simple header with just menu button */}
+      {/* Mobile Navigation - Just hamburger button on far left */}
       <div className="
         lg:hidden 
         fixed 
         top-0 
         left-0 
-        right-0 
         z-[100] 
-        bg-white 
-        border-b
-        border-gray-200
-        h-14
-        sm:h-16
-        shadow-sm
         min-w-0
         isolate
       " style={{ zIndex: 100 }}>
-        <div className="flex items-center justify-end px-4 h-full relative z-[100]">
+        <div className="p-4 relative z-[100]">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <button 
