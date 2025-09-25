@@ -216,14 +216,16 @@ export default function TransferDialog({
       
       console.log('Batch transfer created:', result);
       
-      // Show success message
+      // Show success message and immediately start transition
       setSuccess(`Transfer request created successfully for ${selectedItems.length} size${selectedItems.length !== 1 ? 's' : ''}! Awaiting approval.`);
       
-      // Close dialog after a short delay to show success message
+      // Immediately call onTransferComplete to refresh the parent component
+      onTransferComplete();
+      
+      // Close dialog after a brief delay to show success message
       setTimeout(() => {
-        onTransferComplete();
         onClose();
-      }, 2000);
+      }, 600);
     } catch (err: any) {
       console.error("Error creating transfer request:", err);
       

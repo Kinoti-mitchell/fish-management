@@ -59,7 +59,8 @@ import {
   Award,
   Bell,
   Settings,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { NavigationSection } from "../types";
 import { inventoryService } from "../services/inventoryService";
@@ -151,6 +152,7 @@ export default function InventoryManagement({
   const [batchDetailsOpen, setBatchDetailsOpen] = useState(false);
   const [sizeDemandStats, setSizeDemandStats] = useState<any[]>([]);
   const [pendingTransfers, setPendingTransfers] = useState<any[]>([]);
+  const [openingTransferDialog, setOpeningTransferDialog] = useState(false);
 
   // API Functions
   const fetchInventory = useCallback(async () => {
@@ -1192,8 +1194,10 @@ export default function InventoryManagement({
                           
                           {unit.status === 'active' && unit.items.length > 0 && (
                             <Button
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
+                                
+                                if (openingTransferDialog) return; // Prevent double clicks
                                 
                                 // Check if there are pending transfers for this storage
                                 if (hasPendingTransfersForStorage(unit.location_id)) {
@@ -1202,30 +1206,46 @@ export default function InventoryManagement({
                                   return;
                                 }
                                 
-                                // Quick transfer action for active storage
-                                const items = unit.items.map((item: InventoryItem) => ({
-                                  size: item.size,
-                                  quantity: item.quantity,
-                                  total_weight: item.total_weight
-                                }));
-                                setTransferSourceStorage({
-                                  id: unit.location_id,
-                                  name: unit.location,
-                                  location_type: unit.location_type
-                                });
-                                setItemsToTransfer(items);
-                                setTransferDialogOpen(true);
+                                setOpeningTransferDialog(true);
+                                
+                                try {
+                                  // Quick transfer action for active storage
+                                  const items = unit.items.map((item: InventoryItem) => ({
+                                    size: item.size,
+                                    quantity: item.quantity,
+                                    total_weight: item.total_weight
+                                  }));
+                                  setTransferSourceStorage({
+                                    id: unit.location_id,
+                                    name: unit.location,
+                                    location_type: unit.location_type
+                                  });
+                                  setItemsToTransfer(items);
+                                  setTransferDialogOpen(true);
+                                } finally {
+                                  setOpeningTransferDialog(false);
+                                }
                               }}
+                              disabled={openingTransferDialog}
                               variant="outline"
                               size="sm"
                               className={`${
                                 hasPendingTransfersForStorage(unit.location_id) 
                                   ? "text-red-600 border-red-200 hover:bg-red-50" 
                                   : "text-blue-600 border-blue-200 hover:bg-blue-50"
-                              }`}
+                              } ${openingTransferDialog ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
-                              <Zap className="w-4 h-4 mr-1" />
-                              {hasPendingTransfersForStorage(unit.location_id) ? "Pending Transfer" : "Quick Transfer"}
+                              {openingTransferDialog ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                  Opening...
+                                </>
+                              ) : (
+                                <>
+                                  <Zap className="w-4 h-4 mr-1" />
+                                  {hasPendingTransfersForStorage(unit.location_id) ? "Pending Transfer" : "Quick Transfer"}
+                                </>
+                              )}
                         </Button>
                       )}
                     </div>
