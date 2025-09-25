@@ -14,6 +14,26 @@ export default defineConfig({
     outDir: 'build',
     assetsDir: 'assets',
     chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        // Use consistent naming for all chunks
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        // Organize chunks logically to prevent circular dependencies
+        manualChunks: (id) => {
+          // All vendor libraries in one chunk
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+          
+          // All application code in one chunk to avoid circular dependencies
+          if (id.includes('src/')) {
+            return 'app';
+          }
+        },
+      },
+    },
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],

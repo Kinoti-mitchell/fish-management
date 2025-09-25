@@ -87,14 +87,14 @@ export function FishFarmMarquee() {
   }, []);
 
   return (
-    <div className="w-full bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 shadow-sm overflow-hidden relative z-0">
+    <div className="w-full bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 shadow-sm overflow-hidden relative z-10">
       <div className="max-w-7xl mx-auto">
-        <div className="relative py-1 sm:py-2 overflow-hidden">
+        <div className="relative py-2 sm:py-3 overflow-hidden">
           <div className="flex animate-marquee-simple whitespace-nowrap">
             {marqueeItems.map((item) => (
               <div
                 key={item.id}
-                className={`flex items-center gap-3 px-6 py-2 rounded-full ${item.bgColor} ${item.textColor} font-medium text-sm whitespace-nowrap mx-4 shadow-sm border flex-shrink-0`}
+                className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-1 sm:py-2 rounded-full ${item.bgColor} ${item.textColor} font-medium text-xs sm:text-sm whitespace-nowrap mx-2 sm:mx-4 shadow-sm border flex-shrink-0`}
               >
                 {item.icon}
                 <span>{item.text}</span>
@@ -104,7 +104,7 @@ export function FishFarmMarquee() {
             {marqueeItems.map((item) => (
               <div
                 key={`duplicate-${item.id}`}
-                className={`flex items-center gap-3 px-6 py-2 rounded-full ${item.bgColor} ${item.textColor} font-medium text-sm whitespace-nowrap mx-4 shadow-sm border flex-shrink-0`}
+                className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-1 sm:py-2 rounded-full ${item.bgColor} ${item.textColor} font-medium text-xs sm:text-sm whitespace-nowrap mx-2 sm:mx-4 shadow-sm border flex-shrink-0`}
               >
                 {item.icon}
                 <span>{item.text}</span>
