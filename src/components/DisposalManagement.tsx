@@ -88,6 +88,23 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     loadData();
   }, []);
 
+  // Auto-set date range when daysOld changes
+  useEffect(() => {
+    if (daysOld > 0) {
+      const today = new Date();
+      const cutoffDate = new Date();
+      cutoffDate.setDate(today.getDate() - daysOld);
+      
+      // Set the date range to show items from cutoffDate to today
+      setFromDate(cutoffDate.toISOString().split('T')[0]);
+      setToDate(today.toISOString().split('T')[0]);
+    } else {
+      // If daysOld is 0, clear the date range to show all items
+      setFromDate("");
+      setToDate("");
+    }
+  }, [daysOld]);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -569,7 +586,9 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                       
                       <div className="grid grid-cols-1 gap-4">
                         <div>
-                          <Label htmlFor="fromDate" className="text-sm font-medium">From Date (Optional)</Label>
+                          <Label htmlFor="fromDate" className="text-sm font-medium">
+                            From Date {daysOld > 0 ? `(Auto-set to ${daysOld} days ago)` : '(Optional)'}
+                          </Label>
                           <Input
                             id="fromDate"
                             type="date"
@@ -577,13 +596,19 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             onChange={(e) => setFromDate(e.target.value)}
                             className="mt-1"
                             max={new Date().toISOString().split('T')[0]}
+                            disabled={daysOld > 0}
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            Leave empty to show all items
+                            {daysOld > 0 
+                              ? `Automatically set based on ${daysOld} days threshold`
+                              : 'Leave empty to show all items'
+                            }
                           </p>
                         </div>
                         <div>
-                          <Label htmlFor="toDate" className="text-sm font-medium">To Date (Optional)</Label>
+                          <Label htmlFor="toDate" className="text-sm font-medium">
+                            To Date {daysOld > 0 ? '(Auto-set to today)' : '(Optional)'}
+                          </Label>
                           <Input
                             id="toDate"
                             type="date"
@@ -591,9 +616,13 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             onChange={(e) => setToDate(e.target.value)}
                             className="mt-1"
                             max={new Date().toISOString().split('T')[0]}
+                            disabled={daysOld > 0}
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            Leave empty to show all items
+                            {daysOld > 0 
+                              ? 'Automatically set to today'
+                              : 'Leave empty to show all items'
+                            }
                           </p>
                         </div>
                       </div>
@@ -725,7 +754,10 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                           .toFixed(2)} kg</span>
                       </div>
                       <Badge variant="outline" className="text-xs">
-                        Showing items {daysOld === 0 ? 'of any age' : `${daysOld}+ days old`}
+                        {daysOld === 0 
+                          ? 'Showing all items (no age filter)' 
+                          : `Showing items ${daysOld}+ days old (${fromDate} to ${toDate})`
+                        }
                       </Badge>
                     </div>
                     {selectedItems.length > 0 && (
