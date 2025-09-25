@@ -269,8 +269,10 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
       'Size Class',
       'Weight (kg)',
       'Pieces',
+      'Status',
       'Notes',
-      'Created By'
+      'Created By',
+      'Action'
     ];
 
     const csvData = filteredTransfers.map(transfer => [
@@ -280,8 +282,13 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
       transfer.size,
       transfer.weight_kg?.toFixed(1) || '0.0',
       transfer.quantity,
+      transfer.status,
       transfer.notes,
-      transfer.created_by || 'System'
+      transfer.created_by || 'System',
+      transfer.status === 'pending' ? 'Review' : 
+      transfer.status === 'approved' ? 'Approved' :
+      transfer.status === 'declined' ? 'Declined' :
+      transfer.status === 'completed' ? 'Completed' : 'Unknown'
     ]);
 
     const csvContent = [
@@ -343,9 +350,12 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
                 <th>From Storage</th>
                 <th>To Storage</th>
                 <th>Size Class</th>
-                <th>Quantity</th>
+                <th>Weight (kg)</th>
+                <th>Pieces</th>
+                <th>Status</th>
                 <th>Notes</th>
                 <th>Created By</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -355,9 +365,15 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
                   <td>${transfer.from_storage}</td>
                   <td>${transfer.to_storage}</td>
                   <td>Size ${transfer.size}</td>
+                  <td>${transfer.weight_kg?.toFixed(1) || '0.0'}</td>
                   <td>${transfer.quantity}</td>
+                  <td>${transfer.status}</td>
                   <td>${transfer.notes}</td>
                   <td>${transfer.created_by || 'System'}</td>
+                  <td>${transfer.status === 'pending' ? 'Review' : 
+                      transfer.status === 'approved' ? 'Approved' :
+                      transfer.status === 'declined' ? 'Declined' :
+                      transfer.status === 'completed' ? 'Completed' : 'Unknown'}</td>
                 </tr>
               `).join('')}
             </tbody>
