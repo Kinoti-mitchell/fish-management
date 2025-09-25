@@ -80,7 +80,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
             <nav className="space-y-4 flex-1">
               {navSections.map((section, sectionIndex) => (
                 <div key={sectionIndex}>
-                  <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  <h3 className="px-3 text-xs font-semibold text-blue-200 uppercase tracking-wide mb-2">
                     {section.title}
                   </h3>
                   <div className="space-y-0.5">
@@ -93,19 +93,19 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                           key={item.id}
                           className={`w-full flex items-center gap-3 h-10 text-left font-medium mx-2 text-sm px-3 rounded-lg transition-colors ${
                             isActive 
-                              ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600" 
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                              ? "bg-blue-700 text-white border-r-2 border-white" 
+                              : "text-blue-100 hover:text-white hover:bg-blue-700"
                           }`}
                           onClick={() => {
                             onNavigate(item.id as NavigationSection);
                             setIsOpen(false);
                           }}
                         >
-                          <Icon className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-gray-400"}`} />
+                          <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-blue-200"}`} />
                           <span className="flex-1">{item.label}</span>
                           {item.badge && (
                             <span className={`text-xs h-5 px-2 rounded-full flex items-center ${
-                              isActive ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
+                              isActive ? "bg-white text-blue-700" : "bg-blue-500 text-white"
                             }`}>
                               {item.badge}
                             </span>
@@ -193,26 +193,26 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
 
         {/* User Profile */}
         <div className="border-t border-blue-200 pt-3 space-y-2 flex-shrink-0">
-          <div className="flex items-center gap-2 px-3 py-2 bg-blue-100 rounded-lg mx-1">
+          <div className="flex items-center gap-2 px-3 py-2 bg-blue-700 rounded-lg mx-1">
             <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-blue-600 text-white font-semibold text-xs">
+              <AvatarFallback className="bg-white text-blue-600 font-semibold text-xs">
                 {userProfile?.first_name && userProfile?.last_name 
                   ? `${userProfile.first_name.charAt(0)}${userProfile.last_name.charAt(0)}` 
                   : 'RF'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-xs truncate text-blue-900">
+              <p className="font-semibold text-xs truncate text-white">
                 {userProfile?.first_name && userProfile?.last_name 
                   ? `${userProfile.first_name} ${userProfile.last_name}` 
                   : 'User'}
               </p>
               <div className="flex items-center gap-2">
-                <p className="text-xs text-blue-600 truncate">
+                <p className="text-xs text-blue-200 truncate">
                   {userProfile?.role ? userProfile.role.replace('_', ' ').toUpperCase() : 'Rio Fish Farm'}
                 </p>
                 {permissions && permissions.length > 0 && (
-                  <Badge variant="outline" className="text-xs bg-white text-blue-600 border-blue-200">
+                  <Badge variant="outline" className="text-xs bg-white text-blue-600 border-white">
                     {permissions.includes('*') ? 'All' : permissions.length}
                   </Badge>
                 )}
@@ -221,9 +221,8 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
           </div>
           
           
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-2 h-8 text-left font-medium text-red-600 hover:text-red-700 hover:bg-red-50 mx-1 text-sm"
+          <button
+            className="w-full flex items-center gap-2 h-8 text-left font-medium text-red-200 hover:text-white hover:bg-red-600 mx-1 text-sm px-3 rounded-lg transition-colors"
             onClick={() => {
               onLogout();
               setIsOpen(false);
@@ -231,7 +230,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
           >
             <LogOut className="w-4 h-4" />
             Logout
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -288,37 +287,47 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
 
   return (
     <>
-      {/* Desktop Navigation - Clean sidebar like Meru Craft Collect */}
+      {/* Desktop Navigation - Professional blue sidebar like Meru Craft Collect */}
       <div className="
         hidden 
         md:flex 
         w-64
-        bg-white
+        bg-blue-600
         border-r 
-        border-gray-200
+        border-blue-800
         flex-col 
         fixed 
         left-0 
         top-0 
         h-screen 
         z-50 
-        shadow-sm
+        shadow-lg
       ">
-        {/* Clean header like Meru Craft Collect */}
-        <div className="p-6 border-b border-gray-200 flex-shrink-0">
+        {/* Professional header with logo like Meru Craft Collect */}
+        <div className="p-6 border-b border-blue-800 flex-shrink-0 bg-blue-600">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-              <Package className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 mr-4">
+              <img 
+                src="/fish-management/riofish-logo.png" 
+                alt="Rio Fish Logo" 
+                className="w-full h-full object-contain"
+                style={{ imageRendering: 'crisp-edges' }}
+                onError={(e) => {
+                  console.log('Logo failed to load, trying fallback');
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://riofish.co.ke/wp-content/uploads/2024/01/riofish_logo_copy-removed-background-white.png";
+                }}
+              />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Rio Fish Farm</h1>
-              <p className="text-sm text-gray-500">Kenya Operations</p>
+              <h1 className="text-lg font-semibold text-white">Rio Fish Farm</h1>
+              <p className="text-sm text-blue-100">Kenya Operations</p>
             </div>
           </div>
         </div>
         
-        {/* Clean navigation content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Professional navigation content with blue background */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-blue-600">
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -331,7 +340,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         </div>
       </div>
 
-      {/* Mobile Navigation - Clean mobile header */}
+      {/* Mobile Navigation - Professional blue header */}
       <div className="
         md:hidden 
         fixed 
@@ -339,42 +348,62 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         left-0 
         right-0 
         z-50 
-        bg-white 
+        bg-blue-600 
         border-b
-        border-gray-200
+        border-blue-800
         h-16
-        shadow-sm
+        shadow-lg
       ">
         <div className="flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Package className="w-5 h-5 text-white" />
+            <div className="w-8 h-8">
+              <img 
+                src="/fish-management/riofish-logo.png" 
+                alt="Rio Fish Logo" 
+                className="w-full h-full object-contain"
+                style={{ imageRendering: 'crisp-edges' }}
+                onError={(e) => {
+                  console.log('Logo failed to load, trying fallback');
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://riofish.co.ke/wp-content/uploads/2024/01/riofish_logo_copy-removed-background-white.png";
+                }}
+              />
             </div>
             <div>
-              <h2 className="font-semibold text-sm text-gray-900">Rio Fish Farm</h2>
-              <p className="text-xs text-gray-500">Kenya Operations</p>
+              <h2 className="font-semibold text-sm text-white">Rio Fish Farm</h2>
+              <p className="text-xs text-blue-100">Kenya Operations</p>
             </div>
           </div>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <Menu className="w-5 h-5 text-gray-600" />
+              <button className="p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <Menu className="w-5 h-5 text-white" />
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0">
+            <SheetContent side="left" className="w-80 p-0 bg-blue-600">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-6 border-b border-blue-800">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <Package className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8">
+                    <img 
+                      src="/fish-management/riofish-logo.png" 
+                      alt="Rio Fish Logo" 
+                      className="w-full h-full object-contain"
+                      style={{ imageRendering: 'crisp-edges' }}
+                      onError={(e) => {
+                        console.log('Logo failed to load, trying fallback');
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://riofish.co.ke/wp-content/uploads/2024/01/riofish_logo_copy-removed-background-white.png";
+                      }}
+                    />
                   </div>
                   <div>
-                    <h1 className="text-lg font-semibold text-gray-900">Rio Fish Farm</h1>
-                    <p className="text-sm text-gray-500">Kenya Operations</p>
+                    <h1 className="text-lg font-semibold text-white">Rio Fish Farm</h1>
+                    <p className="text-sm text-blue-100">Kenya Operations</p>
                   </div>
                 </div>
               </div>
-              <div className="p-4 h-[calc(100vh-120px)] overflow-y-auto">
+              <div className="p-4 h-[calc(100vh-120px)] overflow-y-auto bg-blue-600">
                 <NavContent />
               </div>
             </SheetContent>
