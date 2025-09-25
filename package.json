@@ -62,7 +62,7 @@
     "build": "vite build",
     "setup": "node scripts/setup-frontend.js",
     "setup-db": "node scripts/setup-database.js",
-    "setup-env": "node scripts/setup-env.js",
+    "setup-env": "node setup-env.js",
     "setup-users": "node scripts/setup-users.js",
     "start:server": "deno run -A server/server.ts",
     "preview": "vite preview"

@@ -37,6 +37,12 @@ jobs:
         
       - name: Build
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_APP_NAME: RIO FISH FARM
+          VITE_APP_VERSION: 1.0.0
+          VITE_APP_ENVIRONMENT: production
         
       - name: Setup Pages
         uses: actions/configure-pages@v4

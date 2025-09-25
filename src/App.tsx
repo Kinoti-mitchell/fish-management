@@ -256,29 +256,36 @@ function AppContent() {
         }}
       />
       
-      {/* Main content with proper spacing to avoid nav overlap */}
+      {/* Main content - 75% of screen width, no spillage */}
       <main className="
         w-full
         min-h-screen
         pt-16
         md:pt-0
-        md:ml-[clamp(240px,20vw,320px)]
-        lg:ml-[clamp(280px,18vw,320px)]
-        xl:ml-[clamp(300px,16vw,320px)]
+        md:ml-[15vw]
+        md:max-ml-[240px]
+        md:min-ml-[200px]
+        md:w-[85vw]
+        md:max-w-[calc(100vw-200px)]
+        md:min-w-[calc(100vw-240px)]
         overflow-x-hidden
+        overflow-y-auto
         safe-area-inset-left
         safe-area-inset-right
+        box-border
       ">
         <div className="
           w-full
+          h-full
           max-w-full
-          p-4
-          sm:p-6
-          md:p-8
-          lg:p-10
-          xl:p-12
+          p-3
+          sm:p-4
+          md:p-6
+          lg:p-8
+          xl:p-10
           mx-auto
           box-border
+          overflow-x-hidden
         ">
           <AppContentRenderer
             currentSection={currentSection}

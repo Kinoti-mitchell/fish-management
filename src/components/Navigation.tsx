@@ -292,13 +292,16 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
 
   return (
     <>
-      {/* Desktop Navigation - Responsive width */}
+      {/* Desktop Navigation - Precise screen space allocation */}
       <div className="
         hidden 
         md:flex 
-        md:w-[clamp(240px,20vw,320px)]
-        lg:w-[clamp(280px,18vw,320px)]
-        xl:w-[clamp(300px,16vw,320px)]
+        md:w-[15vw]
+        lg:w-[15vw]
+        xl:w-[15vw]
+        2xl:w-[15vw]
+        max-w-[240px]
+        min-w-[200px]
         bg-card 
         border-r 
         flex-col 
