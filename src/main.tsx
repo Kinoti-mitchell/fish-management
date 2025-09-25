@@ -18,10 +18,9 @@ import "./styles/rio-fish-branding.css";
 import { AuthProvider } from "./components/AuthContext";
 import { Toaster } from "./components/ui/sonner";
 import { LoadingScreen } from "./components/LoadingScreen";
-import { initializePWA } from "./utils/pwa";
-
-// Initialize PWA features
-initializePWA();
+// PWA features disabled for now
+// import { initializePWA } from "./utils/pwa";
+// initializePWA();
 
 createRoot(document.getElementById("root")!).render(
   <Suspense fallback={<LoadingScreen />}>
