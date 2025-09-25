@@ -80,7 +80,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
             <nav className="space-y-4 flex-1">
               {navSections.map((section, sectionIndex) => (
                 <div key={sectionIndex}>
-                  <h3 className="px-3 text-xs font-semibold text-blue-200 uppercase tracking-wide mb-2">
+                  <h3 className="px-3 text-xs font-semibold text-white uppercase tracking-wide mb-2">
                     {section.title}
                   </h3>
                   <div className="space-y-0.5">
@@ -94,14 +94,14 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                           className={`w-full flex items-center gap-3 h-10 text-left font-medium mx-2 text-sm px-3 rounded-lg transition-colors ${
                             isActive 
                               ? "bg-blue-700 text-white border-r-2 border-white" 
-                              : "text-blue-100 hover:text-white hover:bg-blue-700"
+                              : "text-white hover:text-white hover:bg-blue-700"
                           }`}
                           onClick={() => {
                             onNavigate(item.id as NavigationSection);
                             setIsOpen(false);
                           }}
                         >
-                          <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-blue-200"}`} />
+                          <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-white"}`} />
                           <span className="flex-1">{item.label}</span>
                           {item.badge && (
                             <span className={`text-xs h-5 px-2 rounded-full flex items-center ${
@@ -208,7 +208,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                   : 'User'}
               </p>
               <div className="flex items-center gap-2">
-                <p className="text-xs text-blue-200 truncate">
+                <p className="text-xs text-white truncate">
                   {userProfile?.role ? userProfile.role.replace('_', ' ').toUpperCase() : 'Rio Fish Farm'}
                 </p>
                 {permissions && permissions.length > 0 && (
