@@ -346,7 +346,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         </div>
       </div>
 
-      {/* Mobile Navigation - Clean header like Meru Craft Collect */}
+      {/* Mobile Navigation - Simple header with just menu button */}
       <div className="
         lg:hidden 
         fixed 
@@ -355,34 +355,15 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         right-0 
         z-[100] 
         bg-white 
-        border-b-2
-        border-gray-300
+        border-b
+        border-gray-200
         h-14
         sm:h-16
-        shadow-xl
+        shadow-sm
         min-w-0
         isolate
       " style={{ zIndex: 100 }}>
-        <div className="flex items-center justify-between px-4 h-full relative z-[100]">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <img 
-                src="/fish-management/riofish-logo.png" 
-                alt="Rio Fish Logo" 
-                className="w-6 h-6 object-contain"
-                style={{ imageRendering: 'crisp-edges' }}
-                onError={(e) => {
-                  console.log('Logo failed to load, trying fallback');
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://riofish.co.ke/wp-content/uploads/2024/01/riofish_logo_copy-removed-background-white.png";
-                }}
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-sm text-gray-900 truncate">Rio Fish Farm</h2>
-              <p className="text-xs text-gray-500 truncate">Kenya Operations</p>
-            </div>
-          </div>
+        <div className="flex items-center justify-end px-4 h-full relative z-[100]">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <button 
@@ -392,11 +373,11 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                 <Menu className="w-6 h-6 text-gray-600" />
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0 bg-blue-600 border-blue-800">
+            <SheetContent side="left" className="w-80 p-0 bg-white border-gray-200">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <div className="p-6 border-b border-blue-800 bg-blue-700">
+              <div className="p-6 border-b border-gray-200 bg-white">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
                     <img 
                       src="/fish-management/riofish-logo.png" 
                       alt="Rio Fish Logo" 
@@ -410,12 +391,12 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                     />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-white" style={{ color: 'white !important' }}>Rio Fish Farm</h1>
-                    <p className="text-sm text-white/80" style={{ color: 'rgba(255,255,255,0.8) !important' }}>Kenya Operations</p>
+                    <h1 className="text-xl font-bold text-gray-900">Rio Fish Farm</h1>
+                    <p className="text-sm text-gray-500">Kenya Operations</p>
                   </div>
                 </div>
               </div>
-              <div className="p-4 h-[calc(100vh-140px)] overflow-y-auto bg-blue-600">
+              <div className="p-4 h-[calc(100vh-140px)] overflow-y-auto bg-white">
                 <NavContent />
               </div>
             </SheetContent>
