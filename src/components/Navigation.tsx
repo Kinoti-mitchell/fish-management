@@ -80,7 +80,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
             <nav className="space-y-4 flex-1">
               {navSections.map((section, sectionIndex) => (
                 <div key={sectionIndex}>
-                  <h3 className="px-3 text-xs font-semibold text-white uppercase tracking-wide mb-2">
+                  <h3 className="px-3 text-xs font-semibold text-white uppercase tracking-wide mb-2" style={{ color: 'white !important' }}>
                     {section.title}
                   </h3>
                   <div className="space-y-0.5">
@@ -96,12 +96,13 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                               ? "bg-blue-700 text-white border-r-2 border-white" 
                               : "text-white hover:text-white hover:bg-blue-700"
                           }`}
+                          style={{ color: 'white !important' }}
                           onClick={() => {
                             onNavigate(item.id as NavigationSection);
                             setIsOpen(false);
                           }}
                         >
-                          <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-white"}`} />
+                          <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-white"}`} style={{ color: 'white !important' }} />
                           <span className="flex-1">{item.label}</span>
                           {item.badge && (
                             <span className={`text-xs h-5 px-2 rounded-full flex items-center ${
@@ -202,13 +203,13 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-xs truncate text-white">
+              <p className="font-semibold text-xs truncate text-white" style={{ color: 'white !important' }}>
                 {userProfile?.first_name && userProfile?.last_name 
                   ? `${userProfile.first_name} ${userProfile.last_name}` 
                   : 'User'}
               </p>
               <div className="flex items-center gap-2">
-                <p className="text-xs text-white truncate">
+                <p className="text-xs text-white truncate" style={{ color: 'white !important' }}>
                   {userProfile?.role ? userProfile.role.replace('_', ' ').toUpperCase() : 'Rio Fish Farm'}
                 </p>
                 {permissions && permissions.length > 0 && (
