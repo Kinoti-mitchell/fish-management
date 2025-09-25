@@ -735,8 +735,23 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
                             Review
                           </Button>
                         )}
-                        {transfer.status !== 'pending' && (
-                          <span className="text-sm text-gray-400">-</span>
+                        {transfer.status === 'approved' && (
+                          <div className="flex items-center gap-1 text-green-600">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="text-sm font-medium">Approved</span>
+                          </div>
+                        )}
+                        {transfer.status === 'declined' && (
+                          <div className="flex items-center gap-1 text-red-600">
+                            <XCircle className="w-4 h-4" />
+                            <span className="text-sm font-medium">Declined</span>
+                          </div>
+                        )}
+                        {transfer.status === 'completed' && (
+                          <div className="flex items-center gap-1 text-blue-600">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="text-sm font-medium">Completed</span>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>

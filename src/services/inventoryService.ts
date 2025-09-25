@@ -1860,6 +1860,27 @@ class InventoryService {
         return [];
       }
       
+      // Get user profiles for display names
+      const userIds = [...new Set([
+        ...transfersData.map(t => t.requested_by).filter(Boolean),
+        ...transfersData.map(t => t.approved_by).filter(Boolean)
+      ])];
+      
+      const { data: userProfiles, error: profilesError } = await withRetry(async () => {
+        if (userIds.length === 0) return { data: [], error: null };
+        return await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .in('id', userIds);
+      });
+      
+      const userMap = new Map();
+      if (userProfiles && !profilesError) {
+        userProfiles.forEach(profile => {
+          userMap.set(profile.id, `${profile.first_name} ${profile.last_name}`);
+        });
+      }
+
       // Process the data - show each transfer individually without grouping
       const finalData = transfersData.map(entry => ({
         id: entry.id,
@@ -1871,8 +1892,8 @@ class InventoryService {
         notes: entry.notes || '',
         status: entry.status,
         created_at: entry.created_at,
-        created_by: entry.requested_by ? `User ${entry.requested_by.slice(0, 8)}` : 'System',
-        approved_by: entry.approved_by ? `User ${entry.approved_by.slice(0, 8)}` : null,
+        created_by: entry.requested_by ? (userMap.get(entry.requested_by) || `User ${entry.requested_by.slice(0, 8)}`) : 'System',
+        approved_by: entry.approved_by ? (userMap.get(entry.approved_by) || `User ${entry.approved_by.slice(0, 8)}`) : null,
         is_bulk: false,
         batch_size: 1
       }));
