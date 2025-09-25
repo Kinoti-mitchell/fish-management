@@ -22,9 +22,10 @@ import {
 import { NavigationSection, DisposalRecord, DisposalReason, DisposalItem } from "../types";
 import { supabase } from "../lib/supabaseClient";
 import { toast } from "sonner";
-import { FishFarmMarquee } from './FishFarmMarquee';
+import { DisposalMarquee } from './DisposalMarquee';
 import { useAuth } from "./AuthContext";
 import { RioFishLogo } from "./RioFishLogo";
+import { disposalService, DisposalStats } from "../services/disposalService";
 
 interface DisposalManagementProps {
   onNavigate: (section: NavigationSection, itemId?: string) => void;
@@ -49,6 +50,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
   const [disposalRecords, setDisposalRecords] = useState<DisposalRecord[]>([]);
   const [disposalReasons, setDisposalReasons] = useState<DisposalReason[]>([]);
   const [inventoryForDisposal, setInventoryForDisposal] = useState<InventoryForDisposal[]>([]);
+  const [disposalStats, setDisposalStats] = useState<DisposalStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [creatingDisposal, setCreatingDisposal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,7 +94,8 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
       await Promise.all([
         loadDisposalRecords(),
         loadDisposalReasons(),
-        loadInventoryForDisposal()
+        loadInventoryForDisposal(),
+        loadDisposalStats()
       ]);
     } catch (error) {
       console.error("Error loading disposal data:", error);
@@ -129,21 +132,36 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     setDisposalReasons(data || []);
   };
 
+  const loadDisposalStats = async () => {
+    try {
+      console.log('🔍 [DisposalManagement] Loading disposal statistics...');
+      const stats = await disposalService.getDisposalStats();
+      setDisposalStats(stats);
+      console.log('📊 [DisposalManagement] Disposal stats loaded:', stats);
+    } catch (error) {
+      console.error('❌ [DisposalManagement] Error loading disposal stats:', error);
+      // Set default stats on error
+      setDisposalStats({
+        totalDisposals: 0,
+        totalDisposedWeight: 0,
+        totalDisposalCost: 0,
+        pendingDisposals: 0,
+        recentDisposals: 0,
+        averageDisposalAge: 0,
+        topDisposalReason: 'Age',
+        monthlyDisposalTrend: 0
+      });
+    }
+  };
+
   const loadInventoryForDisposal = async () => {
     try {
-      console.log('Loading inventory with days old threshold:', daysOld);
+      console.log('🔍 [DisposalManagement] Loading inventory for disposal with threshold:', daysOld);
       
-      const { data, error } = await supabase.rpc('get_inventory_for_disposal', {
-        p_days_old: daysOld,
-        p_include_storage_issues: true // Always include storage issues to get inactive storages
-      });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      // Use the disposal service to get inventory
+      const data = await disposalService.getInventoryForDisposal(daysOld, true);
       
-      console.log('Raw data from function:', data);
+      console.log('📊 [DisposalManagement] Raw data from service:', data);
       
       let filteredData = data || [];
       
@@ -160,52 +178,10 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
         });
       }
       
-      console.log('Filtered data:', filteredData);
-      
-      // If no data returned, try direct query for inactive storages
-      if (filteredData.length === 0) {
-        console.log('No data from function, trying direct query for inactive storages...');
-        const { data: directData, error: directError } = await supabase
-          .from('sorting_results')
-          .select(`
-            id,
-            size_class,
-            total_weight_grams,
-            batch_number,
-            storage_location_name,
-            farmer_name,
-            processing_date,
-            quality_notes,
-            storage_locations!inner(status)
-          `)
-          .eq('status', 'available')
-          .gte('total_weight_grams', 0);
-        
-        if (!directError && directData) {
-          const transformedData = directData.map(item => ({
-            sorting_result_id: item.id,
-            size_class: item.size_class,
-            total_weight_grams: item.total_weight_grams,
-            batch_number: item.batch_number,
-            storage_location_name: item.storage_location_name,
-            storage_status: item.storage_locations?.status || 'active',
-            farmer_name: item.farmer_name,
-            processing_date: item.processing_date,
-            days_in_storage: Math.floor((new Date().getTime() - new Date(item.processing_date).getTime()) / (1000 * 60 * 60 * 24)),
-            disposal_reason: item.storage_locations?.status === 'inactive' ? 'Storage Inactive' : 'Age',
-            quality_notes: item.quality_notes
-          }));
-          
-          console.log('Direct query data:', transformedData);
-          setInventoryForDisposal(transformedData);
-        } else {
-          setInventoryForDisposal(filteredData);
-        }
-      } else {
-        setInventoryForDisposal(filteredData);
-      }
+      console.log('📊 [DisposalManagement] Filtered data:', filteredData);
+      setInventoryForDisposal(filteredData);
     } catch (error) {
-      console.error("Error loading inventory for disposal:", error);
+      console.error("❌ [DisposalManagement] Error loading inventory for disposal:", error);
       setInventoryForDisposal([]);
     }
   };
@@ -535,7 +511,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 content-container">
-      <FishFarmMarquee />
+      <DisposalMarquee stats={disposalStats} />
       
       <div className="container mx-auto responsive-padding">
         {/* Header */}
