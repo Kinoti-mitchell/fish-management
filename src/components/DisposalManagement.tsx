@@ -728,17 +728,23 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             id="fromDate"
                             type="date"
                             value={fromDate}
-                            onChange={(e) => setFromDate(e.target.value)}
+                            onChange={(e) => {
+                              setFromDate(e.target.value);
+                              // Automatically set To Date to today when From Date is selected
+                              if (e.target.value) {
+                                setToDate(new Date().toISOString().split('T')[0]);
+                              }
+                            }}
                             className="mt-1"
                             max={new Date().toISOString().split('T')[0]}
                             disabled={daysOld > 0 && daysOld <= 7}
                           />
                           <p className="text-xs text-gray-500 mt-1 break-words">
                             {daysOld === 0 
-                              ? 'Leave empty to show all items'
+                              ? 'Leave empty to show all items. Selecting a date will auto-set To Date to today.'
                               : daysOld <= 7 
                                 ? `Automatically set based on ${daysOld} days threshold`
-                                : `Select start date for items ${daysOld}+ days old`
+                                : `Select start date for items ${daysOld}+ days old. To Date will be auto-set to today.`
                             }
                           </p>
                         </div>
@@ -761,10 +767,10 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                           />
                           <p className="text-xs text-gray-500 mt-1 break-words">
                             {daysOld === 0 
-                              ? 'Leave empty to show all items'
+                              ? 'Automatically set to today when From Date is selected'
                               : daysOld <= 7 
                                 ? 'Automatically set to today'
-                                : 'Select end date for the range'
+                                : 'Automatically set to today when From Date is selected'
                             }
                           </p>
                         </div>
