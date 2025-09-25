@@ -227,7 +227,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-4">
             <div className="flex items-center gap-6">
-              <div className="w-64 h-40 flex-shrink-0">
+              <div className="w-32 h-20 sm:w-48 sm:h-30 lg:w-64 lg:h-40 flex-shrink-0">
                 <img 
                   src="/fish-management/riofish-logo.png" 
                   alt="Rio Fish Logo" 

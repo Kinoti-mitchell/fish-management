@@ -333,7 +333,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         </div>
         
         {/* Professional navigation content with blue background */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-blue-600">
+        <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-blue-600">
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -381,7 +381,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
               />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="font-bold text-sm sm:text-base text-white truncate" style={{ color: 'white !important' }}>Rio Fish Farm</h2>
+              <h2 className="font-bold text-xs sm:text-sm text-white truncate" style={{ color: 'white !important' }}>Rio Fish Farm</h2>
               <p className="text-xs text-white/80 truncate" style={{ color: 'rgba(255,255,255,0.8) !important' }}>Kenya Operations</p>
             </div>
           </div>

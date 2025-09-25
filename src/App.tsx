@@ -260,13 +260,15 @@ function AppContent() {
       <main className="
         w-full
         min-h-screen
-        pt-16
-        sm:pt-20
+        pt-14
+        sm:pt-16
+        lg:pt-0
         transition-all
         duration-300
         ease-in-out
         safe-area-inset-top
         overflow-x-hidden
+        overflow-y-auto
         relative
         z-10
         main-content
