@@ -1,0 +1,403 @@
+import { Button } from "./ui/button";
+import { 
+  Package, Home, Menu, LogOut, User, 
+  Warehouse, Scissors, ShoppingCart, Truck, CheckSquare, BarChart3, Users, Filter, Shield, Trash2, ArrowRight
+} from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "./ui/sheet";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Badge } from "./ui/badge";
+import { useState } from "react";
+import { NavigationSection } from "../types";
+import { usePermissions } from "../hooks/usePermissions";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { RioFishLogo } from "./RioFishLogo";
+
+interface NavigationProps {
+  currentSection: NavigationSection;
+  onNavigate: (section: NavigationSection) => void;
+  onLogout: () => void;
+}
+
+export function Navigation({ currentSection, onNavigate, onLogout }: NavigationProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { userProfile, canAccess, isAdmin, loading, permissions } = usePermissions();
+
+
+  const getIcon = (iconName: string) => {
+    const icons = {
+      Home, Warehouse, Scissors, Package, ShoppingCart, Truck, CheckSquare, BarChart3, Users, Filter, Trash2, ArrowRight
+    };
+    return icons[iconName as keyof typeof icons] || Home;
+  };
+
+
+  const navSections = [
+    {
+      title: "Overview",
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: 'Home', permissions: ['read:basic'] }
+      ]
+    },
+    {
+      title: "Warehouse Operations", 
+      items: [
+        { id: 'warehouse-entry', label: 'Fish Entry', icon: 'Warehouse', permissions: ['write:inventory'] },
+        { id: 'processing', label: 'Processing', icon: 'Scissors', permissions: ['write:processing'] },
+        { id: 'sorting', label: 'Sorting', icon: 'Filter', permissions: ['write:processing'] },
+        { id: 'inventory', label: 'Inventory', icon: 'Package', permissions: ['read:inventory'] },
+        { id: 'transfers', label: 'Transfers', icon: 'ArrowRight', permissions: ['read:inventory'] },
+        { id: 'disposal', label: 'Disposal', icon: 'Trash2', permissions: ['write:disposal'] }
+      ]
+    },
+    {
+      title: "Outlet Sales",
+      items: [
+        { id: 'outlet-orders', label: 'Outlet Orders', icon: 'ShoppingCart', permissions: ['read:sales'] },
+        { id: 'dispatch', label: 'Dispatch', icon: 'Truck', permissions: ['write:logistics'] },
+        { id: 'outlet-receiving', label: 'Outlet Receiving', icon: 'CheckSquare', permissions: ['read:sales'] }
+      ]
+    },
+    {
+      title: "Analytics",
+      items: [
+        { id: 'reports', label: 'Reports & Analytics', icon: 'BarChart3', permissions: ['read:basic'] }
+      ]
+    },
+    {
+      title: "System Administration",
+      items: [
+        { id: 'user-management', label: 'User Management', icon: 'Users', permissions: ['admin:*', 'write:users'] }
+      ]
+    }
+  ];
+
+  const NavContent = () => {
+    try {
+      // If still loading, show basic navigation for admin users only
+      if (loading && userProfile?.role === 'admin') {
+        return (
+          <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden">
+            <nav className="space-y-4 flex-1">
+              {navSections.map((section, sectionIndex) => (
+                <div key={sectionIndex}>
+                  <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    {section.title}
+                  </h3>
+                  <div className="space-y-0.5">
+                    {section.items.map((item) => {
+                      const Icon = getIcon(item.icon);
+                      const isActive = currentSection === item.id;
+                      
+                      return (
+                        <Button
+                          key={item.id}
+                          variant={isActive ? "default" : "ghost"}
+                          className={`w-full justify-start gap-3 h-10 text-left font-medium mx-2 text-sm px-3 overflow-hidden ${
+                            isActive 
+                              ? "bg-primary text-primary-foreground" 
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          }`}
+                          onClick={() => {
+                            onNavigate(item.id as NavigationSection);
+                            setIsOpen(false);
+                          }}
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span className="flex-1">{item.label}</span>
+                          {item.badge && (
+                            <Badge 
+                              variant="secondary" 
+                              className={`text-xs h-4 px-1.5 rounded-full ${
+                                isActive ? "bg-primary-foreground/20 text-primary-foreground" : ""
+                              }`}
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </nav>
+          </div>
+        );
+      }
+
+    // Filter sections and items based on permissions
+    const filteredSections = navSections.map(section => ({
+      ...section,
+      items: section.items.filter(item => {
+        // If still loading permissions, only show dashboard
+        if (loading) {
+          return item.id === 'dashboard';
+        }
+        
+        // If no permissions specified, allow access
+        if (!item.permissions) return true;
+        
+        // Admin has access to everything
+        if (isAdmin()) return true;
+        
+        // Check if user can access this section
+        const hasAccess = canAccess(item.id);
+        return hasAccess;
+      })
+    })).filter(section => section.items.length > 0);
+
+    // Navigation filtering is working correctly
+
+    return (
+      <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden">
+        <nav className="space-y-4 flex-1">
+          {filteredSections.map((section, sectionIndex) => (
+            <div key={sectionIndex}>
+              <h3 className="px-3 text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">
+                {section.title}
+              </h3>
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const Icon = getIcon(item.icon);
+                  const isActive = currentSection === item.id;
+                  
+                  return (
+                    <Button
+                      key={item.id}
+                      variant={isActive ? "default" : "ghost"}
+                      className={`w-full justify-start gap-3 h-10 text-left font-medium mx-2 text-sm px-3 overflow-hidden ${
+                        isActive 
+                          ? "bg-blue-600 text-white shadow-md" 
+                          : "text-blue-800 hover:text-blue-900 hover:bg-blue-200"
+                      }`}
+                      onClick={() => {
+                        onNavigate(item.id as NavigationSection);
+                        setIsOpen(false);
+                      }}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="flex-1">{item.label}</span>
+                      {item.badge && (
+                        <Badge 
+                          variant="secondary" 
+                          className={`text-xs h-4 px-1.5 rounded-full ${
+                            isActive ? "bg-primary-foreground/20 text-primary-foreground" : ""
+                          }`}
+                        >
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        {/* User Profile */}
+        <div className="border-t border-blue-200 pt-3 space-y-2 flex-shrink-0">
+          <div className="flex items-center gap-2 px-3 py-2 bg-blue-100 rounded-lg mx-1">
+            <Avatar className="w-8 h-8">
+              <AvatarFallback className="bg-blue-600 text-white font-semibold text-xs">
+                {userProfile?.first_name && userProfile?.last_name 
+                  ? `${userProfile.first_name.charAt(0)}${userProfile.last_name.charAt(0)}` 
+                  : 'RF'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-xs truncate text-blue-900">
+                {userProfile?.first_name && userProfile?.last_name 
+                  ? `${userProfile.first_name} ${userProfile.last_name}` 
+                  : 'User'}
+              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-blue-600 truncate">
+                  {userProfile?.role ? userProfile.role.replace('_', ' ').toUpperCase() : 'Rio Fish Farm'}
+                </p>
+                {permissions && permissions.length > 0 && (
+                  <Badge variant="outline" className="text-xs bg-white text-blue-600 border-blue-200">
+                    {permissions.includes('*') ? 'All' : permissions.length}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-2 h-8 text-left font-medium text-red-600 hover:text-red-700 hover:bg-red-50 mx-1 text-sm"
+            onClick={() => {
+              onLogout();
+              setIsOpen(false);
+            }}
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
+        </div>
+      </div>
+    );
+    } catch (error) {
+      console.error('Navigation error:', error);
+      return <FallbackNavContent />;
+    }
+  };
+
+  // Fallback navigation content in case of errors
+  const FallbackNavContent = () => (
+    <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden">
+      <nav className="space-y-4 flex-1">
+        {navSections.map((section, sectionIndex) => (
+          <div key={sectionIndex}>
+            <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 lg:mb-2">
+              {section.title}
+            </h3>
+            <div className="space-y-0.5">
+              {section.items.map((item) => {
+                const isActive = currentSection === item.id;
+                return renderNavItem(item, isActive);
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+      <div className="border-t pt-3 space-y-2 flex-shrink-0">
+        <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-lg mx-1">
+          <Avatar className="w-8 h-8">
+            <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-xs">
+              RF
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-xs truncate">User</p>
+            <p className="text-xs text-muted-foreground truncate">Rio Fish Farm</p>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-2 h-8 text-left font-medium text-destructive hover:text-destructive hover:bg-destructive/10 mx-1 text-sm"
+          onClick={() => {
+            onLogout();
+            setIsOpen(false);
+          }}
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Navigation - Responsive width */}
+      <div className="
+        hidden 
+        md:flex 
+        md:w-[clamp(240px,20vw,320px)]
+        lg:w-[clamp(280px,18vw,320px)]
+        xl:w-[clamp(300px,16vw,320px)]
+        bg-card 
+        border-r 
+        flex-col 
+        fixed 
+        left-0 
+        top-0 
+        h-screen 
+        z-50 
+        overflow-x-hidden
+        safe-area-inset-left
+      ">
+        <div className="p-4 lg:p-6 border-b bg-gradient-to-r from-slate-50 to-gray-50 flex-shrink-0">
+          <div className="flex items-center justify-center">
+            <div className="w-full max-w-[200px] h-16 lg:h-20">
+              <img 
+                src="/fish-management/build/riofish-logo.png" 
+                alt="Rio Fish Logo" 
+                className="w-full h-full object-contain drop-shadow-sm"
+                style={{ imageRendering: 'crisp-edges' }}
+                onError={(e) => {
+                  console.log('Logo failed to load, trying fallback');
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://riofish.co.ke/wp-content/uploads/2024/01/riofish_logo_copy-removed-background-white.png";
+                }}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="p-2 lg:p-3 flex-1 flex flex-col overflow-hidden overflow-x-hidden bg-gradient-to-b from-blue-50 to-blue-100">
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <ErrorBoundary>
+              <NavContent />
+            </ErrorBoundary>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Navigation - Fixed height to prevent overlap */}
+      <div className="
+        md:hidden 
+        fixed 
+        top-0 
+        left-0 
+        right-0 
+        z-50 
+        bg-card 
+        border-b
+        h-16
+        safe-area-inset-top
+        safe-area-inset-left
+        safe-area-inset-right
+      ">
+        <div className="flex items-center justify-between p-3 h-full">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary rounded-lg">
+              <Package className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <div>
+              <h2 className="font-bold text-sm">RIO FISH FARM</h2>
+              <p className="text-xs text-muted-foreground">Kenya Operations</p>
+            </div>
+          </div>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Menu className="w-4 h-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[clamp(280px,85vw,320px)] p-0 overflow-x-hidden">
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <div className="p-4 lg:p-6 border-b bg-gradient-to-r from-slate-50 to-gray-50 flex-shrink-0">
+                <div className="flex items-center justify-center">
+                  <div className="w-full max-w-[200px] h-16 lg:h-20">
+                    <img 
+                      src="/fish-management/build/riofish-logo.png" 
+                      alt="Rio Fish Logo" 
+                      className="w-full h-full object-contain drop-shadow-sm"
+                      style={{ imageRendering: 'crisp-edges' }}
+                      onError={(e) => {
+                        console.log('Logo failed to load, trying fallback');
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://riofish.co.ke/wp-content/uploads/2024/01/riofish_logo_copy-removed-background-white.png";
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="p-2 lg:p-3 h-[calc(100vh-120px)] overflow-hidden bg-gradient-to-b from-blue-50 to-blue-100">
+                <NavContent />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+      
+    </>
+  );
+}
