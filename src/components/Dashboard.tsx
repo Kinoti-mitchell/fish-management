@@ -217,7 +217,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 content-container">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 content-container overflow-x-hidden">
       {/* Marquee */}
       <FishFarmMarquee />
       

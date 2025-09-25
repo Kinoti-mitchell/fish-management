@@ -283,6 +283,8 @@ function AppContent() {
           lg:max-w-7xl
           mx-auto
           min-w-0
+          overflow-x-hidden
+          box-border
         ">
           <AppContentRenderer
             currentSection={currentSection}
