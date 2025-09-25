@@ -193,27 +193,27 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         </nav>
 
         {/* User Profile */}
-        <div className="border-t border-blue-200 pt-3 space-y-2 flex-shrink-0">
-          <div className="flex items-center gap-2 px-3 py-2 bg-blue-700 rounded-lg mx-1">
+        <div className="border-t border-gray-200 pt-3 space-y-2 flex-shrink-0">
+          <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg mx-1">
             <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-white text-blue-600 font-semibold text-xs">
+              <AvatarFallback className="bg-blue-600 text-white font-semibold text-xs">
                 {userProfile?.first_name && userProfile?.last_name 
                   ? `${userProfile.first_name.charAt(0)}${userProfile.last_name.charAt(0)}` 
                   : 'RF'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-xs truncate text-white" style={{ color: 'white !important' }}>
+              <p className="font-semibold text-xs truncate text-gray-900">
                 {userProfile?.first_name && userProfile?.last_name 
                   ? `${userProfile.first_name} ${userProfile.last_name}` 
                   : 'User'}
               </p>
               <div className="flex items-center gap-2">
-                <p className="text-xs text-white truncate" style={{ color: 'white !important' }}>
+                <p className="text-xs text-gray-600 truncate">
                   {userProfile?.role ? userProfile.role.replace('_', ' ').toUpperCase() : 'Rio Fish Farm'}
                 </p>
                 {permissions && permissions.length > 0 && (
-                  <Badge variant="outline" className="text-xs bg-white text-blue-600 border-white">
+                  <Badge variant="outline" className="text-xs bg-blue-600 text-white border-blue-600">
                     {permissions.includes('*') ? 'All' : permissions.length}
                   </Badge>
                 )}
@@ -223,7 +223,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
           
           
           <button
-            className="w-full flex items-center gap-2 h-8 text-left font-medium text-red-200 hover:text-white hover:bg-red-600 mx-1 text-sm px-3 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 h-8 text-left font-medium text-red-600 hover:text-white hover:bg-red-600 mx-1 text-sm px-3 rounded-lg transition-colors"
             onClick={() => {
               onLogout();
               setIsOpen(false);
@@ -350,22 +350,20 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
       <div className="
         lg:hidden 
         fixed 
-        top-0 
-        left-0 
+        top-4 
+        left-4 
         z-[100] 
-        min-w-0
         isolate
       " style={{ zIndex: 100 }}>
-        <div className="p-4 relative z-[100]">
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <button 
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200 relative z-[110]"
-                style={{ zIndex: 110 }}
-              >
-                <Menu className="w-6 h-6 text-gray-600" />
-              </button>
-            </SheetTrigger>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <button 
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200 relative z-[110]"
+              style={{ zIndex: 110 }}
+            >
+              <Menu className="w-6 h-6 text-gray-600" />
+            </button>
+          </SheetTrigger>
             <SheetContent side="left" className="w-80 p-0 bg-white border-gray-200">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <div className="p-6 border-b border-gray-200 bg-white">
@@ -394,7 +392,6 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
               </div>
             </SheetContent>
           </Sheet>
-        </div>
       </div>
       
     </>
