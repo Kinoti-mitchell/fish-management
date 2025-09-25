@@ -268,7 +268,7 @@ export default function TransferDialog({
                   <h3 className="font-semibold text-gray-900">{sourceStorage.name}</h3>
                   <p className="text-sm text-gray-600 capitalize">{sourceStorage.location_type.replace('_', ' ')}</p>
                 </div>
-                <Badge variant="destructive">Inactive</Badge>
+                <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>
               </div>
             </CardContent>
           </Card>
