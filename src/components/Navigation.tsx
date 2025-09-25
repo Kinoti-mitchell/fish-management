@@ -341,7 +341,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         </div>
       </div>
 
-      {/* Mobile Navigation - Professional blue header */}
+      {/* Mobile Navigation - Professional header like Meru Craft Collect */}
       <div className="
         md:hidden 
         fixed 
@@ -354,14 +354,15 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         border-blue-800
         h-16
         shadow-lg
+        backdrop-blur-sm
       ">
         <div className="flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8">
+            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
               <img 
                 src="/fish-management/riofish-logo.png" 
                 alt="Rio Fish Logo" 
-                className="w-full h-full object-contain"
+                className="w-8 h-8 object-contain"
                 style={{ imageRendering: 'crisp-edges' }}
                 onError={(e) => {
                   console.log('Logo failed to load, trying fallback');
@@ -371,25 +372,25 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
               />
             </div>
             <div>
-              <h2 className="font-semibold text-sm text-white">Rio Fish Farm</h2>
-              <p className="text-xs text-blue-100">Kenya Operations</p>
+              <h2 className="font-bold text-base text-white" style={{ color: 'white !important' }}>Rio Fish Farm</h2>
+              <p className="text-xs text-white/80" style={{ color: 'rgba(255,255,255,0.8) !important' }}>Kenya Operations</p>
             </div>
           </div>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <button className="p-2 rounded-lg hover:bg-blue-700 transition-colors">
-                <Menu className="w-5 h-5 text-white" />
+              <button className="p-2 rounded-lg hover:bg-white/10 transition-colors active:bg-white/20">
+                <Menu className="w-6 h-6 text-white" style={{ color: 'white !important' }} />
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0 bg-blue-600">
+            <SheetContent side="left" className="w-80 p-0 bg-blue-600 border-blue-800">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <div className="p-6 border-b border-blue-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8">
+              <div className="p-6 border-b border-blue-800 bg-blue-700">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
                     <img 
                       src="/fish-management/riofish-logo.png" 
                       alt="Rio Fish Logo" 
-                      className="w-full h-full object-contain"
+                      className="w-10 h-10 object-contain"
                       style={{ imageRendering: 'crisp-edges' }}
                       onError={(e) => {
                         console.log('Logo failed to load, trying fallback');
@@ -399,12 +400,12 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                     />
                   </div>
                   <div>
-                    <h1 className="text-lg font-semibold text-white">Rio Fish Farm</h1>
-                    <p className="text-sm text-blue-100">Kenya Operations</p>
+                    <h1 className="text-xl font-bold text-white" style={{ color: 'white !important' }}>Rio Fish Farm</h1>
+                    <p className="text-sm text-white/80" style={{ color: 'rgba(255,255,255,0.8) !important' }}>Kenya Operations</p>
                   </div>
                 </div>
               </div>
-              <div className="p-4 h-[calc(100vh-120px)] overflow-y-auto bg-blue-600">
+              <div className="p-4 h-[calc(100vh-140px)] overflow-y-auto bg-blue-600">
                 <NavContent />
               </div>
             </SheetContent>
