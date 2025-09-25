@@ -353,16 +353,16 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         top-0 
         left-0 
         right-0 
-        z-50 
+        z-[100] 
         bg-white 
-        border-b
-        border-gray-200
+        border-b-2
+        border-gray-300
         h-14
         sm:h-16
-        shadow-sm
+        shadow-xl
         min-w-0
         isolate
-      ">
+      " style={{ zIndex: 100 }}>
         <div className="flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">

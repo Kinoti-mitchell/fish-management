@@ -6518,6 +6518,15 @@
   .main-content {
     z-index: 10 !important;
   }
+  
+  /* Ensure mobile navigation is always visible */
+  .lg\\:hidden {
+    z-index: 100 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
 }
 
 /* Desktop navigation should be below content */
