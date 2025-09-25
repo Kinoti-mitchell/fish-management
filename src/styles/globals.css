@@ -468,7 +468,7 @@
 
   /* Responsive padding that adapts to screen size */
   .responsive-padding {
-    @apply p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12;
+    @apply p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8;
   }
 
   /* Container that respects navigation boundaries */

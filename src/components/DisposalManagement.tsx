@@ -17,7 +17,8 @@ import {
   Search, Filter, Eye, Send, 
   X, Check, Ban, UserCheck, 
   FileText, PlusCircle, TrendingUp, 
-  DollarSign, Weight, MapPin, Building2, RefreshCw, CalendarDays, ChevronDown
+  DollarSign, Weight, MapPin, Building2, RefreshCw, CalendarDays, ChevronDown,
+  Download
 } from "lucide-react";
 import { NavigationSection, DisposalRecord, DisposalReason, DisposalItem } from "../types";
 import { supabase } from "../lib/supabaseClient";
@@ -137,6 +138,37 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
       console.error("Error loading disposal records:", error);
       throw error;
     }
+
+    // Fetch user profiles for disposed_by and approved_by fields
+    if (data && data.length > 0) {
+      const userIds = new Set<string>();
+      data.forEach(record => {
+        if (record.disposed_by) userIds.add(record.disposed_by);
+        if (record.approved_by) userIds.add(record.approved_by);
+      });
+
+      if (userIds.size > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', Array.from(userIds));
+
+        if (!profilesError && profiles) {
+          const userMap = new Map(profiles.map(profile => [profile.id, profile.full_name]));
+          
+          // Update the data with full names
+          const finalData = data.map(record => ({
+            ...record,
+            disposed_by: record.disposed_by ? (userMap.get(record.disposed_by) || `User ${record.disposed_by.slice(0, 8)}`) : null,
+            approved_by: record.approved_by ? (userMap.get(record.approved_by) || `User ${record.approved_by.slice(0, 8)}`) : null
+          }));
+          
+          setDisposalRecords(finalData);
+          return;
+        }
+      }
+    }
+
     setDisposalRecords(data || []);
   };
 
@@ -198,7 +230,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
       }
       
       console.log('📊 [DisposalManagement] Filtered data:', filteredData);
-      setInventoryForDisposal(filteredData);
+          setInventoryForDisposal(filteredData);
     } catch (error) {
       console.error("❌ [DisposalManagement] Error loading inventory for disposal:", error);
       setInventoryForDisposal([]);
@@ -508,6 +540,103 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     }
   };
 
+  const exportToCSV = () => {
+    const headers = [
+      'Number',
+      'Date',
+      'Reason',
+      'Weight (kg)',
+      'Status',
+      'Created By',
+      'Approved/Denied By'
+    ];
+
+    const csvData = filteredRecords.map(record => [
+      record.disposal_number,
+      new Date(record.disposal_date).toLocaleDateString(),
+      record.disposal_reason?.name || 'N/A',
+      record.total_weight_kg.toFixed(1),
+      record.status,
+      record.disposed_by || 'N/A',
+      record.approved_by || (record.status === 'pending' ? 'Pending' : '-')
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.map(field => `"${field}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `disposal-records-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToPDF = () => {
+    // Simple PDF generation using browser print
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const tableHTML = `
+      <html>
+        <head>
+          <title>Disposal Records Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #1f2937; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f3f4f6; font-weight: bold; }
+            .status-pending { background-color: #fef3c7; color: #92400e; }
+            .status-approved { background-color: #dbeafe; color: #1e40af; }
+            .status-completed { background-color: #d1fae5; color: #065f46; }
+            .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+          </style>
+        </head>
+        <body>
+          <h1>Rio Fish Farm - Disposal Records Report</h1>
+          <p>Generated on: ${new Date().toLocaleDateString()}</p>
+          <p>Total Records: ${filteredRecords.length}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Number</th>
+                <th>Date</th>
+                <th>Reason</th>
+                <th>Weight (kg)</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th>Approved/Denied By</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredRecords.map(record => `
+                <tr>
+                  <td>${record.disposal_number}</td>
+                  <td>${new Date(record.disposal_date).toLocaleDateString()}</td>
+                  <td>${record.disposal_reason?.name || 'N/A'}</td>
+                  <td>${record.total_weight_kg.toFixed(1)}</td>
+                  <td class="status-${record.status}">${record.status}</td>
+                  <td>${record.disposed_by || 'N/A'}</td>
+                  <td>${record.approved_by || (record.status === 'pending' ? 'Pending' : '-')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(tableHTML);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   const filteredRecords = disposalRecords.filter(record => {
     const matchesSearch = record.disposal_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.disposal_reason?.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -532,7 +661,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 content-container">
       <DisposalMarquee stats={disposalStats} />
       
-      <div className="container mx-auto responsive-padding">
+      <div className="container mx-auto responsive-padding max-w-full overflow-x-hidden">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -547,7 +676,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                 Create Disposal
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold">Create New Disposal Record</DialogTitle>
                 <DialogDescription>
@@ -557,7 +686,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
               
               <div className="space-y-4">
                 {/* Disposal Configuration */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 max-w-full overflow-x-hidden">
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg">Filter Items for Disposal</CardTitle>
@@ -588,7 +717,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                       
                       <div className="grid grid-cols-1 gap-4">
                         <div>
-                          <Label htmlFor="fromDate" className="text-sm font-medium">
+                          <Label htmlFor="fromDate" className="text-sm font-medium break-words">
                             From Date {
                               daysOld === 0 ? '(Optional)' :
                               daysOld <= 7 ? `(Auto-set to ${daysOld} days ago)` :
@@ -604,7 +733,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             max={new Date().toISOString().split('T')[0]}
                             disabled={daysOld > 0 && daysOld <= 7}
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 mt-1 break-words">
                             {daysOld === 0 
                               ? 'Leave empty to show all items'
                               : daysOld <= 7 
@@ -614,7 +743,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                           </p>
                         </div>
                         <div>
-                          <Label htmlFor="toDate" className="text-sm font-medium">
+                          <Label htmlFor="toDate" className="text-sm font-medium break-words">
                             To Date {
                               daysOld === 0 ? '(Optional)' :
                               daysOld <= 7 ? '(Auto-set to today)' :
@@ -630,7 +759,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             max={new Date().toISOString().split('T')[0]}
                             disabled={daysOld > 0 && daysOld <= 7}
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 mt-1 break-words">
                             {daysOld === 0 
                               ? 'Leave empty to show all items'
                               : daysOld <= 7 
@@ -1105,10 +1234,34 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
         {/* Disposal Records Table */}
         <Card>
           <CardHeader>
+            <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Trash2 className="h-5 w-5" />
               Disposal Records
             </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  onClick={exportToCSV}
+                  variant="outline"
+                  size="sm"
+                  disabled={filteredRecords.length === 0}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export CSV
+                </Button>
+                <Button
+                  onClick={exportToPDF}
+                  variant="outline"
+                  size="sm"
+                  disabled={filteredRecords.length === 0}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Export PDF
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
           <div className="overflow-x-auto">
@@ -1120,6 +1273,8 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                   <TableHead>Reason</TableHead>
                   <TableHead>Weight</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Created By</TableHead>
+                  <TableHead>Approved/Denied By</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1135,6 +1290,8 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                         {record.status}
                       </Badge>
                     </TableCell>
+                    <TableCell>{record.disposed_by || 'N/A'}</TableCell>
+                    <TableCell>{record.approved_by || (record.status === 'pending' ? 'Pending' : '-')}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         <Button
