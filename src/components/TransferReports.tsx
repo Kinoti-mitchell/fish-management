@@ -272,6 +272,7 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
       'Status',
       'Notes',
       'Created By',
+      'Approved/Denied By',
       'Action'
     ];
 
@@ -285,6 +286,7 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
       transfer.status,
       transfer.notes,
       transfer.created_by || 'System',
+      transfer.approved_by || (transfer.status === 'pending' ? 'Pending' : '-'),
       transfer.status === 'pending' ? 'Review' : 
       transfer.status === 'approved' ? 'Approved' :
       transfer.status === 'declined' ? 'Declined' :
@@ -355,6 +357,7 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
                 <th>Status</th>
                 <th>Notes</th>
                 <th>Created By</th>
+                <th>Approved/Denied By</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -370,6 +373,7 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
                   <td>${transfer.status}</td>
                   <td>${transfer.notes}</td>
                   <td>${transfer.created_by || 'System'}</td>
+                  <td>${transfer.approved_by || (transfer.status === 'pending' ? 'Pending' : '-')}</td>
                   <td>${transfer.status === 'pending' ? 'Review' : 
                       transfer.status === 'approved' ? 'Approved' :
                       transfer.status === 'declined' ? 'Declined' :
@@ -670,6 +674,7 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
                     <TableHead>Status</TableHead>
                     <TableHead>Notes</TableHead>
                     <TableHead>Created By</TableHead>
+                    <TableHead>Approved/Denied By</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -738,6 +743,9 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
                       </TableCell>
                       <TableCell className="text-sm text-gray-500">
                         {transfer.created_by || 'System'}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {transfer.approved_by || (transfer.status === 'pending' ? 'Pending' : '-')}
                       </TableCell>
                       <TableCell>
                         {transfer.status === 'pending' && (
