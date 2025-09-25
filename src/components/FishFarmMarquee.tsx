@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Marquee from "./ui/marquee";
-import { Fish, TrendingUp, AlertCircle, CheckCircle, Star, Award, Zap } from "lucide-react";
+import { Fish, TrendingUp, AlertCircle, CheckCircle, Star, Award, Zap, Truck, Package, Users } from "lucide-react";
 
 interface MarqueeItem {
   id: string;
@@ -11,33 +11,47 @@ interface MarqueeItem {
   textColor: string;
 }
 
-export function FishFarmMarquee() {
+interface DashboardStats {
+  totalReadyForDispatch?: number;
+  totalWarehouseEntries?: number;
+  totalWeight?: number;
+  totalOrders?: number;
+  totalFarmers?: number;
+  recentProcessingCount?: number;
+  totalDispatches?: number;
+}
+
+interface FishFarmMarqueeProps {
+  stats?: DashboardStats;
+}
+
+export function FishFarmMarquee({ stats }: FishFarmMarqueeProps) {
   const [marqueeItems, setMarqueeItems] = useState<MarqueeItem[]>([]);
 
   useEffect(() => {
-    // Generate dynamic marquee items
+    // Generate dynamic marquee items using real dashboard data
     const items: MarqueeItem[] = [
       {
         id: '1',
         type: 'success',
-        icon: <CheckCircle className="h-5 w-5" />,
-        text: "🎉 Fresh Tilapia Batch Processed - 2,500kg Ready for Distribution",
+        icon: <Truck className="h-5 w-5" />,
+        text: `🚚 Ready for Dispatch: ${stats?.totalReadyForDispatch || 0} fish ready for delivery`,
         bgColor: "bg-green-100",
         textColor: "text-green-800"
       },
       {
         id: '2',
         type: 'info',
-        icon: <Fish className="h-5 w-5" />,
-        text: "📊 Daily Production: 1,200kg Nile Perch | 800kg Tilapia | 600kg Catfish",
+        icon: <Package className="h-5 w-5" />,
+        text: `📦 Warehouse Entries: ${stats?.totalWarehouseEntries || 0} total entries | ${(stats?.totalWeight || 0).toLocaleString()}kg total weight`,
         bgColor: "bg-blue-100",
         textColor: "text-blue-800"
       },
       {
         id: '3',
         type: 'achievement',
-        icon: <Award className="h-5 w-5" />,
-        text: "🏆 Quality Excellence: 98.5% Grade A Fish This Month",
+        icon: <CheckCircle className="h-5 w-5" />,
+        text: `✅ Processing Success: +${stats?.recentProcessingCount || 0} fish processed this week`,
         bgColor: "bg-purple-100",
         textColor: "text-purple-800"
       },
@@ -45,15 +59,15 @@ export function FishFarmMarquee() {
         id: '4',
         type: 'info',
         icon: <TrendingUp className="h-5 w-5" />,
-        text: "📈 Revenue Growth: +15% This Quarter | New Outlets Added",
+        text: `📈 Orders & Dispatches: ${stats?.totalOrders || 0} total orders | ${stats?.totalDispatches || 0} dispatches completed`,
         bgColor: "bg-indigo-100",
         textColor: "text-indigo-800"
       },
       {
         id: '5',
-        type: 'warning',
-        icon: <AlertCircle className="h-5 w-5" />,
-        text: "⚠️ Temperature Alert: Cold Storage at Optimal 2°C",
+        type: 'info',
+        icon: <Users className="h-5 w-5" />,
+        text: `👥 Farmer Network: ${stats?.totalFarmers || 0} active farmers contributing to production`,
         bgColor: "bg-yellow-100",
         textColor: "text-yellow-800"
       },
@@ -61,15 +75,15 @@ export function FishFarmMarquee() {
         id: '6',
         type: 'success',
         icon: <Star className="h-5 w-5" />,
-        text: "⭐ Customer Satisfaction: 4.9/5 Rating | 50+ Happy Outlets",
+        text: `⭐ System Status: All operations running smoothly | Real-time data updates`,
         bgColor: "bg-emerald-100",
         textColor: "text-emerald-800"
       },
       {
         id: '7',
         type: 'info',
-        icon: <Zap className="h-5 w-5" />,
-        text: "⚡ Processing Speed: 3.2kg/minute | Efficiency Record Broken",
+        icon: <Fish className="h-5 w-5" />,
+        text: `🐟 Production Excellence: High-quality fish processing and distribution system`,
         bgColor: "bg-orange-100",
         textColor: "text-orange-800"
       },
@@ -77,14 +91,14 @@ export function FishFarmMarquee() {
         id: '8',
         type: 'achievement',
         icon: <Award className="h-5 w-5" />,
-        text: "🎯 Target Achieved: 15,000kg Monthly Production Goal Met",
+        text: `🎯 Rio Fish Farm: Leading fish processing and distribution in Kenya`,
         bgColor: "bg-rose-100",
         textColor: "text-rose-800"
       }
     ];
 
     setMarqueeItems(items);
-  }, []);
+  }, [stats]);
 
   return (
     <div className="w-full bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 shadow-sm overflow-hidden relative z-10">

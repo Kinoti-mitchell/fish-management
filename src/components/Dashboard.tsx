@@ -219,7 +219,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 content-container overflow-x-hidden">
       {/* Marquee */}
-      <FishFarmMarquee />
+      <FishFarmMarquee stats={stats} />
       
       <div className="responsive-padding">
         <div className="max-w-7xl mx-auto space-y-8">
@@ -345,7 +345,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   <p className="text-4xl font-bold text-emerald-900 mt-2">
                     {loading ? '...' : (stats?.totalReadyForDispatch || 0)}
                   </p>
-                  <p className="text-sm text-emerald-600">fish</p>
+                  <p className="text-sm text-emerald-600">fish ready</p>
                   <div className="flex items-center gap-1 mt-2">
                     {getTrendIcon(stats?.recentProcessingCount || 0)}
                     <span className="text-sm text-green-600 font-medium">
