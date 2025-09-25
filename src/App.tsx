@@ -256,26 +256,33 @@ function AppContent() {
         }}
       />
       
-      {/* Main content area - Clean dashboard layout with proper mobile spacing */}
+      {/* Main content area - Responsive layout like Meru Craft Collect */}
       <main className="
         w-full
         min-h-screen
-        pt-20
-        md:pt-0
-        md:ml-64
+        pt-16
+        sm:pt-20
+        lg:pt-0
+        lg:ml-64
+        xl:ml-72
         transition-all
         duration-300
         ease-in-out
         safe-area-inset-top
+        overflow-x-hidden
       ">
         <div className="
           w-full
           h-full
-          p-3
-          sm:p-4
-          md:p-6
-          max-w-7xl
+          p-2
+          sm:p-3
+          md:p-4
+          lg:p-6
+          xl:p-8
+          max-w-none
+          lg:max-w-7xl
           mx-auto
+          min-w-0
         ">
           <AppContentRenderer
             currentSection={currentSection}

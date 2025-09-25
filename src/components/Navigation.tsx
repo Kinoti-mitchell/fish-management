@@ -288,11 +288,12 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
 
   return (
     <>
-      {/* Desktop Navigation - Professional blue sidebar like Meru Craft Collect */}
+      {/* Desktop Navigation - Responsive sidebar like Meru Craft Collect */}
       <div className="
         hidden 
-        md:flex 
+        lg:flex 
         w-64
+        xl:w-72
         bg-blue-600
         border-r 
         border-blue-800
@@ -303,6 +304,8 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         h-screen 
         z-50 
         shadow-lg
+        min-w-0
+        flex-shrink-0
       ">
         {/* Professional header with logo like Meru Craft Collect */}
         <div className="p-6 border-b border-blue-800 flex-shrink-0 bg-blue-600">
@@ -341,9 +344,9 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         </div>
       </div>
 
-      {/* Mobile Navigation - Professional header like Meru Craft Collect */}
+      {/* Mobile Navigation - Responsive header like Meru Craft Collect */}
       <div className="
-        md:hidden 
+        lg:hidden 
         fixed 
         top-0 
         left-0 
@@ -352,9 +355,11 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         bg-blue-600 
         border-b
         border-blue-800
-        h-16
+        h-14
+        sm:h-16
         shadow-lg
         backdrop-blur-sm
+        min-w-0
       ">
         <div className="flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
@@ -371,9 +376,9 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
                 }}
               />
             </div>
-            <div>
-              <h2 className="font-bold text-base text-white" style={{ color: 'white !important' }}>Rio Fish Farm</h2>
-              <p className="text-xs text-white/80" style={{ color: 'rgba(255,255,255,0.8) !important' }}>Kenya Operations</p>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-bold text-sm sm:text-base text-white truncate" style={{ color: 'white !important' }}>Rio Fish Farm</h2>
+              <p className="text-xs text-white/80 truncate" style={{ color: 'rgba(255,255,255,0.8) !important' }}>Kenya Operations</p>
             </div>
           </div>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
