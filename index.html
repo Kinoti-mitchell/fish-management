@@ -26,34 +26,7 @@
   </head>
 
   <body>
-    <div id="root">
-      <div style="padding: 20px; font-family: Arial, sans-serif; text-align: center;">
-        <h1>Rio Fish Farm - Kenya Operations</h1>
-        <p>Loading application...</p>
-        <div id="status" style="margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px;">
-          <p>Status: <span id="status-text">Initializing...</span></p>
-        </div>
-      </div>
-    </div>
-    
-    <script>
-      console.log('🔍 HTML loaded, checking React...');
-      document.getElementById('status-text').textContent = 'HTML loaded, waiting for React...';
-      
-      // Check if React loads after a delay
-      setTimeout(() => {
-        const root = document.getElementById('root');
-        if (root && root.innerHTML.includes('Loading application')) {
-          console.warn('⚠️ React has not mounted after 3 seconds');
-          document.getElementById('status-text').textContent = 'React failed to mount - check console';
-          document.getElementById('status-text').style.color = 'red';
-        } else {
-          console.log('✅ React appears to have mounted');
-          document.getElementById('status-text').textContent = 'React mounted successfully';
-          document.getElementById('status-text').style.color = 'green';
-        }
-      }, 3000);
-    </script>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

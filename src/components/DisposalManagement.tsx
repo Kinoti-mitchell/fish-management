@@ -72,7 +72,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
   const [disposalLocation, setDisposalLocation] = useState<string>("");
   const [disposalCost, setDisposalCost] = useState<number>(0);
   const [notes, setNotes] = useState<string>("");
-  const [daysOld, setDaysOld] = useState<number>(30);
+  const [daysOld, setDaysOld] = useState<number>(0);
   const [includeStorageIssues, setIncludeStorageIssues] = useState<boolean>(true);
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
