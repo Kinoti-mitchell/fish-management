@@ -859,7 +859,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                 </div>
 
                 {/* Inventory Items */}
-                <Card>
+                <Card className="overflow-x-hidden">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">Select Items for Disposal</CardTitle>
@@ -893,8 +893,8 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                         </Button>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="text-sm text-gray-600 break-words">
                         <span className="font-medium">Selected: {selectedItems.length} items</span>
                         <span className="mx-2">•</span>
                         <span className="font-medium">Total Weight: {inventoryForDisposal
@@ -902,7 +902,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                           .reduce((sum, item) => sum + (item.total_weight_grams / 1000), 0)
                           .toFixed(2)} kg</span>
                       </div>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs break-words">
                         {daysOld === 0 
                           ? 'Showing all items (no age filter)' 
                           : daysOld <= 7
@@ -912,7 +912,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                       </Badge>
                     </div>
                     {selectedItems.length > 0 && (
-                      <div className="text-xs text-gray-500 mt-2">
+                      <div className="text-xs text-gray-500 mt-2 break-words">
                         Size Distribution: {Object.entries(
                           inventoryForDisposal
                             .filter(item => selectedItems.includes(item.sorting_result_id))
