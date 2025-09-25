@@ -6527,6 +6527,13 @@
     left: 0 !important;
     right: 0 !important;
   }
+  
+  /* Ensure mobile navigation button is always clickable */
+  .lg\\:hidden button {
+    z-index: 110 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+  }
 }
 
 /* Desktop navigation should be below content */

@@ -363,7 +363,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         min-w-0
         isolate
       " style={{ zIndex: 100 }}>
-        <div className="flex items-center justify-between px-4 h-full">
+        <div className="flex items-center justify-between px-4 h-full relative z-[100]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <img 
@@ -385,7 +385,10 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
           </div>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200">
+              <button 
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200 relative z-[110]"
+                style={{ zIndex: 110 }}
+              >
                 <Menu className="w-6 h-6 text-gray-600" />
               </button>
             </SheetTrigger>
