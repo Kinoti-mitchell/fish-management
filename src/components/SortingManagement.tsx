@@ -1596,30 +1596,29 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
                     </SelectTrigger>
                     <SelectContent>
                       {(() => {
-                        const availableLocations = storageLocations.filter((location) => {
+                        // Only show storages with adequate space for the total weight being sorted
+                        const adequateLocations = storageLocations.filter((location) => {
                           const availableCapacity = location.capacity_kg - (location.current_usage_kg || 0);
-                          const utilizationPercent = location.capacity_kg > 0 ? 
-                            ((location.current_usage_kg || 0) / location.capacity_kg * 100) : 0;
-                          return utilizationPercent < 100;
+                          return availableCapacity >= sortingForm.total_weight_kg;
                         });
                         
-                        if (availableLocations.length === 0) {
+                        if (adequateLocations.length === 0) {
                           return (
                             <div className="p-3 text-center text-gray-500 text-sm">
-                              No storage locations available - all units are full
+                              No storage locations with adequate space ({sortingForm.total_weight_kg}kg needed)
                             </div>
                           );
                         }
                         
-                        return availableLocations.map((location) => {
+                        return adequateLocations.map((location) => {
                           const availableCapacity = location.capacity_kg - (location.current_usage_kg || 0);
-                          const isInadequate = availableCapacity < sortingForm.total_weight_kg;
+                          const remainingAfterStorage = availableCapacity - sortingForm.total_weight_kg;
                           return (
                             <SelectItem key={location.id} value={location.id}>
                               <div className="flex justify-between items-center w-full">
-                                <span className={isInadequate ? "text-red-600" : ""}>{location.name}</span>
-                                <span className={`text-xs ml-2 ${isInadequate ? "text-red-500" : "text-gray-500"}`}>
-                                  {availableCapacity}kg available
+                                <span className="text-gray-900">{location.name}</span>
+                                <span className="text-xs ml-2 text-gray-500">
+                                  {availableCapacity}kg available ({remainingAfterStorage}kg remaining)
                                 </span>
                               </div>
                             </SelectItem>
@@ -1629,25 +1628,17 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
                     </SelectContent>
                   </Select>
                   
-                  {/* Storage Warning - Simplified */}
+                  {/* Storage Confirmation - Only adequate storages are shown */}
                   {sortingForm.storage_location_id && (() => {
                     const selectedLocation = storageLocations.find(loc => loc.id === sortingForm.storage_location_id);
                     if (!selectedLocation) return null;
                     
                     const availableCapacity = selectedLocation.capacity_kg - (selectedLocation.current_usage_kg || 0);
-                    const isInadequate = availableCapacity < sortingForm.total_weight_kg;
-                    
-                    if (isInadequate) {
-                      return (
-                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
-                          ⚠️ Insufficient capacity ({availableCapacity}kg available, {sortingForm.total_weight_kg}kg needed)
-                        </div>
-                      );
-                    }
+                    const remainingAfterStorage = availableCapacity - sortingForm.total_weight_kg;
                     
                     return (
                       <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-                        ✓ {availableCapacity - sortingForm.total_weight_kg}kg remaining after storage
+                        ✓ Adequate space confirmed - {remainingAfterStorage}kg remaining after storage
                       </div>
                     );
                   })()}
@@ -1679,11 +1670,7 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
                 if (isSubmittingSorting) return true;
                 if (sortingForm.remaining_weight_kg !== 0) return true;
                 if (!sortingForm.storage_location_id) return true;
-                const selectedLocation = storageLocations.find(loc => loc.id === sortingForm.storage_location_id);
-                if (selectedLocation) {
-                  const availableCapacity = selectedLocation.capacity_kg - (selectedLocation.current_usage_kg || 0);
-                  if (availableCapacity < sortingForm.total_weight_kg) return true;
-                }
+                // Storage capacity validation removed since we only show adequate storages
                 return false;
               })()}
               className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
