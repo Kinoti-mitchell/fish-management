@@ -272,7 +272,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
           disposal_location: disposalLocation || null,
           disposal_cost: disposalCost,
           notes: notes || null,
-          disposed_by: null, // Set to null to avoid foreign key constraint issues
+          disposed_by: user?.id || null, // Use logged-in user's ID
           status: 'pending',
           total_weight_kg: 0 // Will be calculated
         })
@@ -348,7 +348,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     try {
       const { error } = await supabase.rpc('approve_disposal', {
         p_disposal_id: recordId,
-        p_approved_by: null // Set to null to avoid foreign key constraint issues
+        p_approved_by: user?.id || null // Use logged-in user's ID
       });
 
       if (error) throw error;
@@ -432,7 +432,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
         .from('disposal_records')
         .update({ 
           status: 'completed',
-          approved_by: null // Set to null to avoid foreign key constraint issues
+          approved_by: user?.id || null // Use logged-in user's ID
         })
         .eq('id', pendingDisposal.id);
 
