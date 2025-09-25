@@ -6491,3 +6491,25 @@
 .animate-marquee-simple {
   animation: marquee-simple 20s linear infinite;
 }
+
+/* Ensure proper z-index stacking like Meru Craft Collect */
+.navigation-container {
+  z-index: 50 !important;
+  position: relative;
+}
+
+.main-content {
+  z-index: 10 !important;
+  position: relative;
+}
+
+/* Prevent content from going under navigation on zoom */
+@media (min-resolution: 1.5dppx) {
+  .main-content {
+    z-index: 5 !important;
+  }
+  
+  .navigation-container {
+    z-index: 60 !important;
+  }
+}

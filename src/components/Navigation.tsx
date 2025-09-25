@@ -306,6 +306,8 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         shadow-lg
         min-w-0
         flex-shrink-0
+        isolate
+        navigation-container
       ">
         {/* Professional header with logo like Meru Craft Collect */}
         <div className="p-6 border-b border-blue-800 flex-shrink-0 bg-blue-600">
@@ -360,6 +362,8 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         shadow-lg
         backdrop-blur-sm
         min-w-0
+        isolate
+        navigation-container
       ">
         <div className="flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">

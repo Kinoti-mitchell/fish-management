@@ -270,6 +270,9 @@ function AppContent() {
         ease-in-out
         safe-area-inset-top
         overflow-x-hidden
+        relative
+        z-10
+        main-content
       ">
         <div className="
           w-full
