@@ -87,9 +87,9 @@ export function FishFarmMarquee() {
   }, []);
 
   return (
-    <div className="w-full bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 shadow-sm overflow-hidden relative z-10">
+    <div className="w-full bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 shadow-sm overflow-hidden relative z-0">
       <div className="max-w-7xl mx-auto">
-        <div className="relative py-2 overflow-hidden">
+        <div className="relative py-1 sm:py-2 overflow-hidden">
           <div className="flex animate-marquee-simple whitespace-nowrap">
             {marqueeItems.map((item) => (
               <div

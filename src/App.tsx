@@ -256,21 +256,24 @@ function AppContent() {
         }}
       />
       
-      {/* Main content area - Clean dashboard layout */}
+      {/* Main content area - Clean dashboard layout with proper mobile spacing */}
       <main className="
         w-full
         min-h-screen
-        pt-16
+        pt-20
         md:pt-0
         md:ml-64
         transition-all
         duration-300
         ease-in-out
+        safe-area-inset-top
       ">
         <div className="
           w-full
           h-full
-          p-6
+          p-3
+          sm:p-4
+          md:p-6
           max-w-7xl
           mx-auto
         ">
