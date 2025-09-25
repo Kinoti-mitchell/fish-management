@@ -346,7 +346,7 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         </div>
       </div>
 
-      {/* Mobile Navigation - Responsive header like Meru Craft Collect */}
+      {/* Mobile Navigation - Clean header like Meru Craft Collect */}
       <div className="
         lg:hidden 
         fixed 
@@ -354,24 +354,22 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
         left-0 
         right-0 
         z-50 
-        bg-blue-600 
+        bg-white 
         border-b
-        border-blue-800
+        border-gray-200
         h-14
         sm:h-16
-        shadow-lg
-        backdrop-blur-sm
+        shadow-sm
         min-w-0
         isolate
-        navigation-container
       ">
         <div className="flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <img 
                 src="/fish-management/riofish-logo.png" 
                 alt="Rio Fish Logo" 
-                className="w-8 h-8 object-contain"
+                className="w-6 h-6 object-contain"
                 style={{ imageRendering: 'crisp-edges' }}
                 onError={(e) => {
                   console.log('Logo failed to load, trying fallback');
@@ -381,14 +379,14 @@ export function Navigation({ currentSection, onNavigate, onLogout }: NavigationP
               />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="font-bold text-xs sm:text-sm text-white truncate" style={{ color: 'white !important' }}>Rio Fish Farm</h2>
-              <p className="text-xs text-white/80 truncate" style={{ color: 'rgba(255,255,255,0.8) !important' }}>Kenya Operations</p>
+              <h2 className="font-semibold text-sm text-gray-900 truncate">Rio Fish Farm</h2>
+              <p className="text-xs text-gray-500 truncate">Kenya Operations</p>
             </div>
           </div>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <button className="p-2 rounded-lg hover:bg-white/10 transition-colors active:bg-white/20">
-                <Menu className="w-6 h-6 text-white" style={{ color: 'white !important' }} />
+              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200">
+                <Menu className="w-6 h-6 text-gray-600" />
               </button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80 p-0 bg-blue-600 border-blue-800">

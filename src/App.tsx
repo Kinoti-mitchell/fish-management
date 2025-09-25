@@ -271,6 +271,7 @@ function AppContent() {
         overflow-y-auto
         relative
         z-10
+        lg:z-50
         main-content
       ">
         <div className="
