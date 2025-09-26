@@ -23,9 +23,11 @@ import {
 import { NavigationSection } from "../types";
 import { supabase, handleSupabaseError, withRetry } from "../lib/supabaseClient";
 import { toast } from "sonner";
+import { auditLog } from "../utils/auditLogger";
 import { RioFishLogo } from "./RioFishLogo";
 import { PermissionsDropdown } from "./PermissionsDropdown";
 import { UserPermissionsView } from "./UserPermissionsView";
+import AuditLogsView from "./AuditLogsView";
 
 interface UserRole {
   id: string;
@@ -567,33 +569,13 @@ export default function UserManagement({ onNavigate }: UserManagementProps) {
     return details;
   };
 
-  // Audit logging function
+  // Audit logging function - using centralized audit logger
   const logAuditEvent = async (action: string, tableName: string, recordId?: string, oldValues?: any, newValues?: any) => {
     try {
-      // Get current user from session storage (custom auth system)
-      const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
-      
-      if (!currentUser) return; // Skip logging if no authenticated user
-      
-      const auditData = {
-        user_id: currentUser.id,
-        action,
-        table_name: tableName,
-        record_id: recordId,
-        old_values: oldValues ? JSON.stringify(oldValues) : null,
-        new_values: newValues ? JSON.stringify(newValues) : null,
-        ip_address: null, // Could be enhanced to capture real IP
-        user_agent: navigator.userAgent,
-        created_at: new Date().toISOString()
-      };
-      
-      const { error } = await supabase
-        .from('audit_logs')
-        .insert([auditData]);
-      
-      if (error) {
-        console.warn('Failed to log audit event:', error);
-      }
+      await auditLog.custom(action, tableName, recordId, {
+        old_values: oldValues,
+        new_values: newValues
+      });
     } catch (error) {
       console.warn('Failed to log audit event:', error);
     }
@@ -2071,104 +2053,7 @@ export default function UserManagement({ onNavigate }: UserManagementProps) {
 
         {/* Audit Logs Tab */}
         <TabsContent value="audit" className="space-y-6">
-            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-red-50 to-pink-50 border-b border-red-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-red-100 rounded-xl">
-                    <Activity className="h-6 w-6 text-red-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                      Audit Logs
-                      <Badge variant="secondary" className="bg-red-100 text-red-700 border-red-200">
-                        {auditLogs.length} Entries
-                      </Badge>
-              </CardTitle>
-                    <p className="text-gray-600 mt-1">Monitor system activity and user actions</p>
-                  </div>
-                </div>
-            </CardHeader>
-              <CardContent className="p-6">
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <div className="mobile-table-container">
-                  <Table className="mobile-table">
-                    <TableHeader className="bg-gradient-to-r from-red-50 to-pink-50">
-                      <TableRow className="border-b border-red-100">
-                        <TableHead className="font-semibold text-gray-700 py-4">Activity</TableHead>
-                        <TableHead className="font-semibold text-gray-700 py-4">User</TableHead>
-                        <TableHead className="font-semibold text-gray-700 py-4">Details</TableHead>
-                        <TableHead className="font-semibold text-gray-700 py-4">Date & Time</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {auditLogs.map((log, index) => (
-                        <TableRow 
-                          key={log.id}
-                          className={`hover:bg-red-50/50 transition-colors duration-200 border-b border-gray-100 ${
-                            index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                          }`}
-                        >
-                          <TableCell className="py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                                <Activity className="h-5 w-5" />
-                              </div>
-                              <div>
-                                <p className="text-gray-900 font-medium">
-                                  {getAuditLogMessage(log)}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {log.table_name} • {log.action}
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                                {log.user ? log.user.first_name.charAt(0) : 'U'}
-                              </div>
-                              <div>
-                                <p className="text-gray-900 font-medium">
-                                  {log.user ? `${log.user.first_name} ${log.user.last_name}` : 'Unknown User'}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {log.user?.email || 'No email'}
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="space-y-1">
-                              {getAuditLogDetails(log).map((detail, idx) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                                  <span className="text-sm text-gray-600">{detail}</span>
-                                </div>
-                              ))}
-                              {getAuditLogDetails(log).length === 0 && (
-                                <span className="text-sm text-gray-400 italic">No additional details</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="text-right">
-                              <p className="text-gray-900 font-medium">
-                                {new Date(log.created_at).toLocaleDateString()}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(log.created_at).toLocaleTimeString()}
-                              </p>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  </div>
-                </div>
-            </CardContent>
-          </Card>
+          <AuditLogsView onNavigate={onNavigate} />
         </TabsContent>
 
         {/* Outlets Tab */}

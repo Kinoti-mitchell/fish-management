@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
   ],
-  base: '/fish-management/',
+  base: process.env.NODE_ENV === 'production' ? '/fish-management/' : '/',
   build: {
     target: 'esnext',
     outDir: 'build',

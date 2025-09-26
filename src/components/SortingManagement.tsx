@@ -364,13 +364,16 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
         throw updateError;
       }
       
+      // Calculate total pieces from size distribution
+      const totalPieces = Object.values(sortingForm.size_distribution).reduce((sum: number, qty: any) => sum + (Number(qty) || 0), 0);
+      
       // Create a sorting batch record directly
       const batchData = {
         processing_record_id: selectedRecord.id,
         batch_number: sortingForm.batch_number,
         notes: sortingForm.notes,
         status: 'completed',
-        total_pieces: selectedRecord.ready_for_dispatch_count || 0,
+        total_pieces: totalPieces, // Use calculated total pieces from size distribution
         total_weight_grams: sortingForm.total_weight_kg * 1000, // Convert kg to grams
         sorting_date: new Date().toISOString().split('T')[0],
         storage_location_id: sortingForm.storage_location_id,
@@ -398,6 +401,36 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
       }
       
       if (batchResult) {
+        // Create sorting results for each size class
+        const sortingResultsData = Object.entries(sortingForm.size_distribution).map(([sizeClass, quantity]) => {
+          const pieces = Number(quantity) || 0;
+          const weightPerPiece = pieces > 0 ? (sortingForm.total_weight_kg * 1000) / totalPieces : 0; // Convert kg to grams
+          const totalWeightGrams = pieces * weightPerPiece;
+          
+          return {
+            sorting_batch_id: batchResult.id,
+            size_class: parseInt(sizeClass),
+            total_pieces: pieces,
+            total_weight_grams: totalWeightGrams,
+            average_weight_grams: weightPerPiece,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+        }).filter(result => result.total_pieces > 0); // Only include sizes with pieces
+        
+        if (sortingResultsData.length > 0) {
+          const { error: resultsError } = await supabase
+            .from('sorting_results')
+            .insert(sortingResultsData);
+          
+          if (resultsError) {
+            console.error('Error creating sorting results:', resultsError);
+            throw resultsError;
+          }
+          
+          console.log('Created sorting results:', sortingResultsData.length, 'size classes');
+        }
+        
         // Update storage location capacity
         try {
           // First get current usage

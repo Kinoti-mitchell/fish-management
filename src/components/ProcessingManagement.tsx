@@ -835,6 +835,10 @@ export default function ProcessingManagement({ onNavigate }: ProcessingManagemen
       const { generateUniqueProcessingCode } = await import("../utils/entryCodeGenerator");
       const processingCode = await generateUniqueProcessingCode();
       
+      // Calculate ready_for_dispatch_count based on post-processing weight
+      // Assuming average fish weight of 200g (0.2kg), so 5 pieces per kg
+      const estimatedPieces = Math.round((formData.post_processing_weight || 0) * 5);
+      
       const processingData = {
         warehouse_entry_id: formData.warehouse_entry_id,
         processing_date: new Date().toISOString().split('T')[0], // DATE format
@@ -849,6 +853,7 @@ export default function ProcessingManagement({ onNavigate }: ProcessingManagemen
         },
         final_value: (formData.post_processing_weight || 0) * 450, // Assuming 450 KES per kg
         total_pieces: selectedWarehouseEntry?.total_pieces || 0, // Inherited from warehouse entry
+        ready_for_dispatch_count: estimatedPieces, // Calculate based on post-processing weight
         processing_code: processingCode
       };
 
