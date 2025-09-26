@@ -218,15 +218,29 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
       
       // Apply date filtering if dates are provided
       if (fromDate || toDate) {
+        console.log('🔍 [DisposalManagement] Applying date filtering:', { fromDate, toDate });
+        console.log('📊 [DisposalManagement] Items before date filtering:', filteredData.length);
+        
         filteredData = filteredData.filter((item: InventoryForDisposal) => {
           const processingDate = new Date(item.processing_date);
           const from = fromDate ? new Date(fromDate) : null;
           const to = toDate ? new Date(toDate) : null;
           
+          console.log('🔍 [DisposalManagement] Checking item date:', {
+            processingDate: item.processing_date,
+            processingDateObj: processingDate,
+            from,
+            to,
+            passesFrom: !from || processingDate >= from,
+            passesTo: !to || processingDate <= to
+          });
+          
           if (from && processingDate < from) return false;
           if (to && processingDate > to) return false;
           return true;
         });
+        
+        console.log('📊 [DisposalManagement] Items after date filtering:', filteredData.length);
       }
       
       console.log('📊 [DisposalManagement] Filtered data:', filteredData);

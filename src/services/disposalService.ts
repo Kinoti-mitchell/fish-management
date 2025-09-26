@@ -228,9 +228,23 @@ class DisposalService {
       console.log('📊 [DisposalService] Raw data from direct query:', data?.length || 0, 'items');
 
       // Filter for completed batches and apply disposal criteria
+      console.log('🔍 [DisposalService] Filtering items with criteria:', { daysOld, includeStorageIssues });
+      
       const eligibleItems = (data || []).filter((result: any) => {
+        console.log('🔍 [DisposalService] Checking item:', {
+          id: result.id,
+          batchStatus: result.sorting_batch?.status,
+          hasProcessingRecord: !!result.sorting_batch?.processing_record,
+          processingDate: result.sorting_batch?.processing_record?.processing_date,
+          batchCreatedAt: result.sorting_batch?.created_at,
+          storageStatus: result.storage_locations?.status,
+          totalPieces: result.total_pieces,
+          totalWeight: result.total_weight_grams
+        });
+
         // Must be from completed batches
         if (!result.sorting_batch || result.sorting_batch.status !== 'completed') {
+          console.log('❌ [DisposalService] Item filtered out - batch not completed:', result.sorting_batch?.status);
           return false;
         }
 
@@ -239,6 +253,7 @@ class DisposalService {
                               result.sorting_batch?.created_at?.split('T')[0];
         
         if (!processingDate) {
+          console.log('❌ [DisposalService] Item filtered out - no processing date');
           return false;
         }
 
@@ -253,13 +268,31 @@ class DisposalService {
           (result.storage_locations.current_usage_kg > result.storage_locations.capacity_kg)
         );
 
+        console.log('📊 [DisposalService] Item criteria check:', {
+          daysInStorage,
+          isOldEnough,
+          hasStorageIssues,
+          storageStatus: result.storage_locations?.status,
+          eligible: isOldEnough || hasStorageIssues
+        });
+
         return isOldEnough || hasStorageIssues;
       });
 
       console.log('📊 [DisposalService] Eligible items after filtering:', eligibleItems.length);
 
+      // If no items found with current criteria, show all items for debugging
+      let itemsToTransform = eligibleItems;
+      if (eligibleItems.length === 0 && data && data.length > 0) {
+        console.log('⚠️ [DisposalService] No items found with current criteria, showing all items for debugging');
+        itemsToTransform = data.filter((result: any) => 
+          result.sorting_batch && result.sorting_batch.status === 'completed'
+        );
+        console.log('📊 [DisposalService] Showing all completed items:', itemsToTransform.length);
+      }
+
       // Transform to match expected format
-      const transformedItems = eligibleItems.map((item: any) => ({
+      const transformedItems = itemsToTransform.map((item: any) => ({
         sorting_result_id: item.id,
         size_class: item.size_class,
         total_pieces: item.total_pieces,
