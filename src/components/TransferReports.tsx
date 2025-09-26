@@ -96,8 +96,8 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
       if (batchTransfers.length > 1) {
         // This is a batch - create a single grouped record
         const firstTransfer = batchTransfers[0];
-        const totalQuantity = batchTransfers.reduce((sum, t) => sum + t.quantity, 0);
-        const totalWeight = batchTransfers.reduce((sum, t) => sum + t.weight_kg, 0);
+        const totalQuantity = batchTransfers.reduce((sum, t) => sum + (Number(t.quantity) || 0), 0);
+        const totalWeight = batchTransfers.reduce((sum, t) => sum + (Number(t.weight_kg) || 0), 0);
         const sizes = batchTransfers.map(t => t.size).sort((a, b) => a - b);
 
         const groupedTransfer: TransferRecord = {
@@ -581,7 +581,7 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Weight</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {filteredTransfers.reduce((sum, t) => sum + (t.weight_kg || 0), 0).toFixed(1)}kg
+                  {filteredTransfers.reduce((sum, t) => sum + (Number(t.weight_kg) || 0), 0).toFixed(1)}kg
                 </p>
               </div>
               <div className="p-3 bg-orange-100 rounded-lg">
