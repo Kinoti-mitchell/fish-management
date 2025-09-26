@@ -418,6 +418,7 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
           
           return {
             sorting_batch_id: batchResult.id,
+            storage_location_id: sortingForm.storage_location_id, // ✅ FIX: Include storage location
             size_class: parseInt(sizeClass),
             total_pieces: pieces,
             total_weight_grams: totalWeightGrams,
