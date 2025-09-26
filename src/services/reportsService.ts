@@ -179,11 +179,12 @@ class ReportsService {
       const onTimeDeliveries = dispatchData?.filter(d => d.status === 'delivered').length || 0;
       const onTimeDelivery = totalDispatches > 0 ? (onTimeDeliveries / totalDispatches) * 100 : 0;
 
-      // Calculate average fish size from inventory
+      // Calculate average fish size from sorting results
       const { data: inventoryData, error: inventoryError } = await withRetry(async () => {
         return await supabase
-          .from('fish_inventory')
-          .select('size, weight');
+          .from('sorting_results')
+          .select('size_class, total_weight_grams')
+          .eq('sorting_batch.status', 'completed');
       });
 
       let averageSize = 0;

@@ -178,12 +178,25 @@ export const fishService = {
     try {
       const { data, error } = await withRetry(async () => {
         return await supabase
-          .from('fish_inventory')
+          .from('sorting_results')
           .select(`
             *,
-            farmer:farmers(name, phone, location),
-            warehouse_entry:warehouse_entries(entry_date, total_weight)
+            sorting_batch:sorting_batches(
+              id,
+              batch_number,
+              status,
+              processing_record:processing_records(
+                id,
+                processing_date,
+                warehouse_entry:warehouse_entries(
+                  id,
+                  farmer_id,
+                  farmers(name, phone, location)
+                )
+              )
+            )
           `)
+          .eq('sorting_batch.status', 'completed')
           .order('created_at', { ascending: false });
       });
       if (error) throw error;
@@ -251,15 +264,9 @@ export const fishService = {
 
   async createFish(fishData: any) {
     try {
-      const { data, error } = await withRetry(async () => {
-        return await supabase
-          .from('fish_inventory')
-          .insert([fishData])
-          .select()
-          .single();
-      });
-      if (error) throw error;
-      return data;
+      // Note: Fish should be added through the sorting system, not directly
+      console.warn("Direct fish addition is deprecated. Use sorting workflow instead.");
+      throw new Error("Direct fish addition is not supported. Use the sorting workflow to add fish to inventory.");
     } catch (error) {
       throw new Error(handleSupabaseError(error, 'creating fish record'));
     }
@@ -267,16 +274,9 @@ export const fishService = {
 
   async updateFish(id: string, updates: any) {
     try {
-      const { data, error } = await withRetry(async () => {
-        return await supabase
-          .from('fish_inventory')
-          .update({ ...updates, updated_at: new Date().toISOString() })
-          .eq('id', id)
-          .select()
-          .single();
-      });
-      if (error) throw error;
-      return data;
+      // Note: Fish updates should be done through the sorting system
+      console.warn("Direct fish updates are deprecated. Use sorting workflow instead.");
+      throw new Error("Direct fish updates are not supported. Use the sorting workflow to manage fish inventory.");
     } catch (error) {
       throw new Error(handleSupabaseError(error, 'updating fish record'));
     }
@@ -284,13 +284,9 @@ export const fishService = {
 
   async deleteFish(id: string) {
     try {
-      const { error } = await withRetry(async () => {
-        return await supabase
-          .from('fish_inventory')
-          .delete()
-          .eq('id', id);
-      });
-      if (error) throw error;
+      // Note: Fish deletion should be done through the sorting system
+      console.warn("Direct fish deletion is deprecated. Use sorting workflow instead.");
+      throw new Error("Direct fish deletion is not supported. Use the sorting workflow to manage fish inventory.");
     } catch (error) {
       throw new Error(handleSupabaseError(error, 'deleting fish record'));
     }
