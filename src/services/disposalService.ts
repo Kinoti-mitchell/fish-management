@@ -174,15 +174,37 @@ class DisposalService {
    */
   async getInventoryForDisposal(daysOld = 30, includeStorageIssues = true) {
     try {
-      console.log('🔍 [DisposalService] Getting inventory for disposal with direct query...');
+      console.log('🔍 [DisposalService] Getting inventory for disposal using same approach as InventoryService...');
       
-      // Use direct query like inventory service instead of RPC function
+      // Use same approach as InventoryService: get storage locations separately, then map manually
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysOld);
       
       console.log('📅 [DisposalService] Cutoff date for disposal:', cutoffDate.toISOString().split('T')[0]);
       console.log('📅 [DisposalService] Days old threshold:', daysOld);
-      
+
+      // Step 1: Get storage locations separately (same as InventoryService)
+      console.log('📍 [DisposalService] Getting storage locations...');
+      const { data: storageLocations, error: storageError } = await supabase
+        .from('storage_locations')
+        .select('id, name, status, capacity_kg, current_usage_kg')
+        .order('name');
+
+      if (storageError) {
+        console.error('❌ [DisposalService] Storage locations error:', storageError);
+        throw storageError;
+      }
+
+      console.log('📍 [DisposalService] Storage locations found:', storageLocations?.length || 0);
+
+      // Create storage map for quick lookup (same as InventoryService)
+      const storageMap = new Map();
+      storageLocations?.forEach(location => {
+        storageMap.set(location.id, location);
+      });
+
+      // Step 2: Get sorting results (same as InventoryService)
+      console.log('📦 [DisposalService] Getting sorting results...');
       const { data, error } = await supabase
         .from('sorting_results')
         .select(`
@@ -206,40 +228,37 @@ class DisposalService {
                 farmers(name, phone, location)
               )
             )
-          ),
-          storage_locations(
-            id,
-            name,
-            status,
-            capacity_kg,
-            current_usage_kg
           )
         `)
         .not('storage_location_id', 'is', null)
         .gt('total_weight_grams', 0)
-        .gt('total_pieces', 0)
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ [DisposalService] Direct query error:', error);
+        console.error('❌ [DisposalService] Sorting results error:', error);
         throw error;
       }
 
-      console.log('📊 [DisposalService] Raw data from direct query:', data?.length || 0, 'items');
+      console.log('📊 [DisposalService] Raw query results:', data?.length || 0, 'items');
 
       // Filter for completed batches and apply disposal criteria
       console.log('🔍 [DisposalService] Filtering items with criteria:', { daysOld, includeStorageIssues });
       
       const eligibleItems = (data || []).filter((result: any) => {
+        // Get storage location from map (same as InventoryService)
+        const storageLocation = storageMap.get(result.storage_location_id);
+        
         console.log('🔍 [DisposalService] Checking item:', {
           id: result.id,
           batchStatus: result.sorting_batch?.status,
           hasProcessingRecord: !!result.sorting_batch?.processing_record,
           processingDate: result.sorting_batch?.processing_record?.processing_date,
           batchCreatedAt: result.sorting_batch?.created_at,
-          storageStatus: result.storage_locations?.status,
+          storageLocationName: storageLocation?.name,
+          storageStatus: storageLocation?.status,
           totalPieces: result.total_pieces,
-          totalWeight: result.total_weight_grams
+          totalWeight: result.total_weight_grams,
+          hasStorageLocationId: !!result.storage_location_id
         });
 
         // Must be from completed batches
@@ -262,17 +281,21 @@ class DisposalService {
         
         // Check if item meets disposal criteria
         const isOldEnough = daysInStorage >= daysOld;
+        
+        // Handle storage issues using storage map (same as InventoryService)
         const hasStorageIssues = includeStorageIssues && (
-          !result.storage_locations || 
-          result.storage_locations.status !== 'active' ||
-          (result.storage_locations.current_usage_kg > result.storage_locations.capacity_kg)
+          !result.storage_location_id || // Missing storage location ID
+          !storageLocation || // Storage location not found in map
+          storageLocation.status !== 'active' ||
+          (storageLocation.current_usage_kg > storageLocation.capacity_kg)
         );
 
         console.log('📊 [DisposalService] Item criteria check:', {
           daysInStorage,
           isOldEnough,
           hasStorageIssues,
-          storageStatus: result.storage_locations?.status,
+          storageStatus: storageLocation?.status,
+          hasStorageLocationId: !!result.storage_location_id,
           eligible: isOldEnough || hasStorageIssues
         });
 
@@ -291,24 +314,29 @@ class DisposalService {
         console.log('📊 [DisposalService] Showing all completed items:', itemsToTransform.length);
       }
 
-      // Transform to match expected format
-      const transformedItems = itemsToTransform.map((item: any) => ({
-        sorting_result_id: item.id,
-        size_class: item.size_class,
-        total_pieces: item.total_pieces,
-        total_weight_grams: item.total_weight_grams,
-        batch_number: item.sorting_batch?.batch_number || 'BATCH-' + item.sorting_batch?.id?.substring(0, 8),
-        storage_location_name: item.storage_locations?.name || 'Unknown Storage',
-        farmer_name: item.sorting_batch?.processing_record?.warehouse_entry?.farmers?.name || 'Unknown Farmer',
-        processing_date: item.sorting_batch?.processing_record?.processing_date || 
-                        item.sorting_batch?.created_at?.split('T')[0],
-        days_in_storage: Math.floor((new Date().getTime() - new Date(
-          item.sorting_batch?.processing_record?.processing_date || 
-          item.sorting_batch?.created_at?.split('T')[0]
-        ).getTime()) / (1000 * 60 * 60 * 24)),
-        disposal_reason: item.storage_locations?.status !== 'active' ? 'Storage Inactive' : 'Age',
-        quality_notes: `Fish from ${item.sorting_batch?.processing_record?.warehouse_entry?.farmers?.name || 'Unknown Farmer'}`
-      }));
+      // Transform to match expected format using storage map (same as InventoryService)
+      const transformedItems = itemsToTransform.map((item: any) => {
+        const storageLocation = storageMap.get(item.storage_location_id);
+        
+        return {
+          sorting_result_id: item.id,
+          size_class: item.size_class,
+          total_pieces: item.total_pieces,
+          total_weight_grams: item.total_weight_grams,
+          batch_number: item.sorting_batch?.batch_number || 'BATCH-' + item.sorting_batch?.id?.substring(0, 8),
+          storage_location_name: storageLocation?.name || 'No Storage Assigned',
+          farmer_name: item.sorting_batch?.processing_record?.warehouse_entry?.farmers?.name || 'Unknown Farmer',
+          processing_date: item.sorting_batch?.processing_record?.processing_date || 
+                          item.sorting_batch?.created_at?.split('T')[0],
+          days_in_storage: Math.floor((new Date().getTime() - new Date(
+            item.sorting_batch?.processing_record?.processing_date || 
+            item.sorting_batch?.created_at?.split('T')[0]
+          ).getTime()) / (1000 * 60 * 60 * 24)),
+          disposal_reason: !item.storage_location_id ? 'No Storage Location' : 
+                          (storageLocation?.status !== 'active' ? 'Storage Inactive' : 'Age'),
+          quality_notes: `Fish from ${item.sorting_batch?.processing_record?.warehouse_entry?.farmers?.name || 'Unknown Farmer'}`
+        };
+      });
 
       console.log('📊 [DisposalService] Transformed items:', transformedItems.length);
       return transformedItems;
