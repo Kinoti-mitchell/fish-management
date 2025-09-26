@@ -40,7 +40,7 @@ interface UserWithLogs {
   role: string;
   is_active: boolean;
   created_at: string;
-  last_login?: string;
+  last_login?: string | null;
   audit_logs: AuditLog[];
   total_activities: number;
 }
@@ -102,8 +102,24 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
       const usersWithLogsData: UserWithLogs[] = (users || []).map(user => ({
         ...user,
         audit_logs: logsByUser.get(user.id) || [],
-        total_activities: logsByUser.get(user.id)?.length || 0
+        total_activities: logsByUser.get(user.id)?.length || 0,
+        last_login: logsByUser.get(user.id)?.[0]?.created_at || null
       }));
+
+      // Sort users by most recent activity first
+      usersWithLogsData.sort((a, b) => {
+        // Users with activities come first
+        if (a.total_activities > 0 && b.total_activities === 0) return -1;
+        if (a.total_activities === 0 && b.total_activities > 0) return 1;
+        
+        // If both have activities, sort by most recent activity
+        if (a.total_activities > 0 && b.total_activities > 0) {
+          return new Date(b.last_login || 0).getTime() - new Date(a.last_login || 0).getTime();
+        }
+        
+        // If neither has activities, sort by user creation date
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
 
       setUsersWithLogs(usersWithLogsData);
     } catch (error) {
@@ -192,7 +208,7 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
     } else if (tableName.includes('inventory')) {
       return 'Inventory item';
     } else if (tableName.includes('warehouse')) {
-      return 'Warehouse entry';
+      return 'Warehouse entry record';
     } else if (tableName.includes('dispatch')) {
       return 'Dispatch record';
     } else if (tableName.includes('outlet')) {
@@ -227,7 +243,7 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
       } else if (tableName.includes('inventory')) {
         return 'Added inventory item';
       } else if (tableName.includes('warehouse')) {
-        return 'Created warehouse entry';
+        return 'Created new warehouse entry';
       } else if (tableName.includes('dispatch')) {
         return 'Created dispatch record';
       } else if (tableName.includes('outlet')) {
@@ -251,7 +267,7 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
       } else if (tableName.includes('inventory')) {
         return 'Updated inventory item';
       } else if (tableName.includes('warehouse')) {
-        return 'Updated warehouse entry';
+        return 'Updated warehouse entry details';
       } else if (tableName.includes('dispatch')) {
         return 'Updated dispatch record';
       } else if (tableName.includes('outlet')) {
