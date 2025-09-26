@@ -27,7 +27,7 @@ import { auditLog } from "../utils/auditLogger";
 import { RioFishLogo } from "./RioFishLogo";
 import { PermissionsDropdown } from "./PermissionsDropdown";
 import { UserPermissionsView } from "./UserPermissionsView";
-import { AuditLogsView } from "./AuditLogsView";
+import AuditLogsView from "./AuditLogsView";
 
 interface UserRole {
   id: string;

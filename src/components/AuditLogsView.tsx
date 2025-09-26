@@ -49,7 +49,7 @@ interface AuditLogsViewProps {
   onNavigate?: (section: string, itemId?: string) => void;
 }
 
-export default function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
+function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
   const [usersWithLogs, setUsersWithLogs] = useState<UserWithLogs[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -392,3 +392,5 @@ export default function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
     </div>
   );
 }
+
+export default AuditLogsView;
