@@ -1,113 +1,141 @@
--- Complete Transfer System Fix
--- This script adds missing columns and fixes the create_batch_transfer function
+-- Complete Transfer Fix - One Script
+-- This script fixes the approval function and moves inventory for already approved transfers
 
--- 1. Add missing columns to the transfers table
-DO $$
-BEGIN
-    -- Add size_class column if it doesn't exist
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'transfers' AND column_name = 'size_class') THEN
-        ALTER TABLE transfers ADD COLUMN size_class INTEGER;
-        RAISE NOTICE 'Column size_class added to transfers table.';
-    END IF;
-    
-    -- Add quantity column if it doesn't exist
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'transfers' AND column_name = 'quantity') THEN
-        ALTER TABLE transfers ADD COLUMN quantity INTEGER;
-        RAISE NOTICE 'Column quantity added to transfers table.';
-    END IF;
-    
-    -- Add weight_kg column if it doesn't exist
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'transfers' AND column_name = 'weight_kg') THEN
-        ALTER TABLE transfers ADD COLUMN weight_kg DECIMAL(10,2);
-        RAISE NOTICE 'Column weight_kg added to transfers table.';
-    END IF;
-END $$;
+-- 1. Fix the approval function to actually move inventory
+DROP FUNCTION IF EXISTS approve_transfer(UUID, UUID) CASCADE;
 
--- 2. Drop existing create_batch_transfer function to avoid conflicts
-DROP FUNCTION IF EXISTS create_batch_transfer(UUID, UUID, JSONB, TEXT, UUID) CASCADE;
-
--- 3. Create the fixed create_batch_transfer function
-CREATE OR REPLACE FUNCTION create_batch_transfer(
-    p_from_storage_location_id UUID,
-    p_to_storage_location_id UUID,
-    p_size_data JSONB,
-    p_notes TEXT DEFAULT NULL,
-    p_requested_by UUID DEFAULT NULL
-) RETURNS UUID AS $$
+CREATE OR REPLACE FUNCTION approve_transfer(
+    p_transfer_id UUID,
+    p_approved_by UUID
+) RETURNS TABLE(
+    success BOOLEAN,
+    message TEXT
+) AS $$
 DECLARE
-    v_transfer_id UUID;
-    v_first_transfer_id UUID;
-    v_batch_transfer_id UUID;
-    v_from_name TEXT;
-    v_to_name TEXT;
-    v_size_item JSONB;
+    v_transfer RECORD;
+    v_updated_rows INTEGER;
 BEGIN
-    -- Get storage names
-    SELECT name INTO v_from_name FROM storage_locations WHERE id = p_from_storage_location_id;
-    SELECT name INTO v_to_name FROM storage_locations WHERE id = p_to_storage_location_id;
-
-    -- Create individual transfer records for each size
-    FOR v_size_item IN SELECT * FROM jsonb_array_elements(p_size_data)
-    LOOP
-        INSERT INTO transfers (
-            from_storage_location_id,
-            to_storage_location_id,
-            from_storage_name,
-            to_storage_name,
-            size_class,
-            quantity,
-            weight_kg,
-            notes,
-            requested_by,
-            status
-        ) VALUES (
-            p_from_storage_location_id,
-            p_to_storage_location_id,
-            COALESCE(v_from_name, 'Unknown'),
-            COALESCE(v_to_name, 'Unknown'),
-            (v_size_item->>'size')::INTEGER,
-            (v_size_item->>'quantity')::INTEGER,
-            (v_size_item->>'weightKg')::DECIMAL(10,2),
-            p_notes,
-            p_requested_by,
-            'pending'
-        ) RETURNING id INTO v_first_transfer_id;
-
-        -- Store the first transfer ID to return as the batch ID
-        IF v_batch_transfer_id IS NULL THEN
-            v_batch_transfer_id := v_first_transfer_id;
-        END IF;
-    END LOOP;
-
-    RETURN v_batch_transfer_id;
+    -- Get the transfer record
+    SELECT * INTO v_transfer
+    FROM transfers
+    WHERE id = p_transfer_id AND status = 'pending';
+    
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT FALSE, 'Transfer not found or already processed'::TEXT;
+        RETURN;
+    END IF;
+    
+    -- Update transfer status to approved
+    UPDATE transfers
+    SET 
+        status = 'approved',
+        approved_by = p_approved_by,
+        approved_at = NOW(),
+        updated_at = NOW()
+    WHERE id = p_transfer_id;
+    
+    -- Move inventory by changing storage_location_id in sorting_results
+    UPDATE sorting_results
+    SET 
+        storage_location_id = v_transfer.to_storage_location_id,
+        updated_at = NOW()
+    WHERE storage_location_id = v_transfer.from_storage_location_id
+    AND size_class = v_transfer.size_class
+    AND total_pieces >= v_transfer.quantity;
+    
+    -- Check if the update was successful
+    GET DIAGNOSTICS v_updated_rows = ROW_COUNT;
+    
+    IF v_updated_rows = 0 THEN
+        -- No inventory found to move - rollback the transfer status
+        UPDATE transfers
+        SET 
+            status = 'pending',
+            approved_by = NULL,
+            approved_at = NULL,
+            updated_at = NOW()
+        WHERE id = p_transfer_id;
+        
+        RETURN QUERY SELECT FALSE, 'No inventory found to move for this transfer'::TEXT;
+        RETURN;
+    END IF;
+    
+    RETURN QUERY SELECT TRUE, 'Transfer approved and inventory moved successfully'::TEXT;
 END;
 $$ LANGUAGE plpgsql;
 
--- 4. Grant permissions on the function
-GRANT EXECUTE ON FUNCTION create_batch_transfer(UUID, UUID, JSONB, TEXT, UUID) TO authenticated;
+-- 2. Create decline_transfer function
+CREATE OR REPLACE FUNCTION decline_transfer(
+    p_transfer_id UUID,
+    p_approved_by UUID
+) RETURNS TABLE(
+    success BOOLEAN,
+    message TEXT
+) AS $$
+BEGIN
+    UPDATE transfers
+    SET 
+        status = 'declined',
+        approved_by = p_approved_by,
+        approved_at = NOW(),
+        updated_at = NOW()
+    WHERE id = p_transfer_id AND status = 'pending';
+    
+    IF FOUND THEN
+        RETURN QUERY SELECT TRUE, 'Transfer declined successfully'::TEXT;
+    ELSE
+        RETURN QUERY SELECT FALSE, 'Transfer not found or already processed'::TEXT;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
--- 5. Check the updated table structure
+-- 3. Grant permissions
+GRANT EXECUTE ON FUNCTION approve_transfer(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION decline_transfer(UUID, UUID) TO authenticated;
+
+-- 4. Fix already approved transfers by moving their inventory
+-- Move Size 1 inventory from Processing Area 2 to Cold Storage B
+UPDATE sorting_results 
+SET 
+    storage_location_id = (SELECT id FROM storage_locations WHERE name = 'Cold Storage B'),
+    updated_at = NOW()
+WHERE storage_location_id = (SELECT id FROM storage_locations WHERE name = 'Processing Area 2')
+AND size_class = 1;
+
+-- 5. Check results
+SELECT 'Processing Area 2 - Size 1 After Fix' as check_type;
 SELECT 
-    column_name,
-    data_type,
-    is_nullable
-FROM information_schema.columns 
-WHERE table_name = 'transfers' 
-ORDER BY ordinal_position;
+    sr.id,
+    sl.name as storage_name,
+    sr.size_class,
+    sr.total_pieces,
+    ROUND(sr.total_weight_grams / 1000.0, 2) as weight_kg
+FROM sorting_results sr
+JOIN storage_locations sl ON sr.storage_location_id = sl.id
+WHERE sl.name = 'Processing Area 2' AND sr.size_class = 1;
 
--- 6. Show current data with the new columns
+SELECT 'Cold Storage B - Size 1 After Fix' as check_type;
 SELECT 
-    id,
-    from_storage_name,
-    to_storage_name,
-    size_class,
-    quantity,
-    weight_kg,
-    notes,
-    status,
-    created_at
-FROM transfers 
-ORDER BY created_at DESC;
+    sr.id,
+    sl.name as storage_name,
+    sr.size_class,
+    sr.total_pieces,
+    ROUND(sr.total_weight_grams / 1000.0, 2) as weight_kg
+FROM sorting_results sr
+JOIN storage_locations sl ON sr.storage_location_id = sl.id
+WHERE sl.name = 'Cold Storage B' AND sr.size_class = 1;
 
--- 7. Success message
-SELECT 'Transfer system completely fixed! All columns added and function updated.' as status;
+-- 6. Final storage summary
+SELECT 'Final Storage Summary' as check_type;
+SELECT 
+    sl.name as storage_name,
+    sl.location_type,
+    COUNT(*) as inventory_records,
+    SUM(sr.total_pieces) as total_pieces,
+    ROUND(SUM(sr.total_weight_grams) / 1000.0, 2) as total_weight_kg
+FROM sorting_results sr
+JOIN storage_locations sl ON sr.storage_location_id = sl.id
+GROUP BY sl.id, sl.name, sl.location_type
+ORDER BY total_weight_kg DESC;
+
+SELECT 'Transfer system fixed and inventory moved successfully!' as status;
