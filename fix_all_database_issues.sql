@@ -142,5 +142,147 @@ GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
 
--- Step 9: Verify the fix
-SELECT 'All RLS policies fixed successfully!' as status;
+-- Step 9: Fix RLS for transfers table
+ALTER TABLE transfers DISABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all authenticated users to view transfers" ON transfers;
+DROP POLICY IF EXISTS "Allow all authenticated users to insert transfers" ON transfers;
+DROP POLICY IF EXISTS "Allow all authenticated users to update transfers" ON transfers;
+DROP POLICY IF EXISTS "Allow all authenticated users to delete transfers" ON transfers;
+ALTER TABLE transfers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow all authenticated users to view transfers" ON transfers
+    FOR SELECT USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Allow all authenticated users to insert transfers" ON transfers
+    FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Allow all authenticated users to update transfers" ON transfers
+    FOR UPDATE USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Allow all authenticated users to delete transfers" ON transfers
+    FOR DELETE USING (auth.uid() IS NOT NULL);
+
+-- Step 10: Create missing transfer functions
+-- Drop existing functions to avoid conflicts
+DROP FUNCTION IF EXISTS approve_transfer(UUID, UUID);
+DROP FUNCTION IF EXISTS decline_transfer(UUID, UUID);
+DROP FUNCTION IF EXISTS create_batch_transfer(UUID, UUID, JSONB, TEXT, UUID);
+
+-- Create approve_transfer function
+CREATE OR REPLACE FUNCTION approve_transfer(
+    p_transfer_id UUID,
+    p_approved_by UUID
+) RETURNS TABLE(
+    success BOOLEAN,
+    message TEXT
+) AS $$
+DECLARE
+    v_transfer RECORD;
+BEGIN
+    SELECT * INTO v_transfer
+    FROM transfers
+    WHERE id = p_transfer_id AND status = 'pending';
+    
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT FALSE, 'Transfer request not found or already processed'::TEXT;
+        RETURN;
+    END IF;
+    
+    -- Update transfer status to approved
+    UPDATE transfers
+    SET 
+        status = 'approved',
+        approved_by = p_approved_by,
+        approved_at = NOW(),
+        updated_at = NOW()
+    WHERE id = p_transfer_id;
+    
+    RETURN QUERY SELECT TRUE, 'Transfer approved successfully'::TEXT;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create decline_transfer function
+CREATE OR REPLACE FUNCTION decline_transfer(
+    p_transfer_id UUID,
+    p_approved_by UUID
+) RETURNS TABLE(
+    success BOOLEAN,
+    message TEXT
+) AS $$
+BEGIN
+    UPDATE transfers
+    SET 
+        status = 'declined',
+        approved_by = p_approved_by,
+        approved_at = NOW(),
+        updated_at = NOW()
+    WHERE id = p_transfer_id AND status = 'pending';
+    
+    IF FOUND THEN
+        RETURN QUERY SELECT TRUE, 'Transfer declined successfully'::TEXT;
+    ELSE
+        RETURN QUERY SELECT FALSE, 'Transfer not found or already processed'::TEXT;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create create_batch_transfer function
+CREATE OR REPLACE FUNCTION create_batch_transfer(
+    p_from_storage_location_id UUID,
+    p_to_storage_location_id UUID,
+    p_size_data JSONB,
+    p_notes TEXT DEFAULT NULL,
+    p_requested_by UUID DEFAULT NULL
+) RETURNS UUID AS $$
+DECLARE
+    v_transfer_id UUID;
+    v_first_transfer_id UUID;
+    v_size_item JSONB;
+    v_from_name TEXT;
+    v_to_name TEXT;
+BEGIN
+    -- Get storage names
+    SELECT name INTO v_from_name FROM storage_locations WHERE id = p_from_storage_location_id;
+    SELECT name INTO v_to_name FROM storage_locations WHERE id = p_to_storage_location_id;
+    
+    -- Create transfers for each size
+    FOR v_size_item IN SELECT * FROM jsonb_array_elements(p_size_data)
+    LOOP
+        INSERT INTO transfers (
+            from_storage_location_id,
+            to_storage_location_id,
+            from_storage_name,
+            to_storage_name,
+            size_class,
+            quantity,
+            weight_kg,
+            notes,
+            requested_by,
+            status
+        ) VALUES (
+            p_from_storage_location_id,
+            p_to_storage_location_id,
+            v_from_name,
+            v_to_name,
+            (v_size_item->>'size')::INTEGER,
+            (v_size_item->>'quantity')::INTEGER,
+            (v_size_item->>'weightKg')::DECIMAL(10,2),
+            p_notes,
+            p_requested_by,
+            'pending'
+        ) RETURNING id INTO v_transfer_id;
+        
+        -- Store the first transfer ID to return
+        IF v_first_transfer_id IS NULL THEN
+            v_first_transfer_id := v_transfer_id;
+        END IF;
+    END LOOP;
+    
+    RETURN v_first_transfer_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant permissions on functions
+GRANT EXECUTE ON FUNCTION approve_transfer(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION decline_transfer(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION create_batch_transfer(UUID, UUID, JSONB, TEXT, UUID) TO authenticated;
+
+-- Step 11: Verify the fix
+SELECT 'All RLS policies and transfer functions fixed successfully!' as status;

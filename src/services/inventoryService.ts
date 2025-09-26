@@ -1829,6 +1829,13 @@ class InventoryService {
   }
 
   /**
+   * Get transfers with items - alias for getTransferHistory for backward compatibility
+   */
+  async getTransfersWithItems(limit = 100): Promise<any[]> {
+    return await this.getTransferHistory(limit);
+  }
+
+  /**
    * Get transfer history from unified transfers table
    */
   async getTransferHistory(limit = 100): Promise<any[]> {
@@ -1909,66 +1916,7 @@ class InventoryService {
     }
   }
 
-  /**
-   * Get transfer history - alias for getTransfersWithItems
-   */
-  async getTransferHistory(limit: number = 100): Promise<any[]> {
-    try {
-      console.log('🔍 Getting transfer history...');
-      return await this.getTransfersWithItems(limit);
-    } catch (error) {
-      console.error('Error getting transfer history:', error);
-      return [];
-    }
-  }
 
-  /**
-   * Approve a transfer
-   */
-  async approveTransfer(transferId: string, approvedBy: string): Promise<boolean> {
-    try {
-      console.log('✅ Approving transfer:', transferId);
-      const { data, error } = await supabase.rpc('approve_transfer', {
-        p_transfer_id: transferId,
-        p_approved_by: approvedBy
-      });
-
-      if (error) {
-        console.error('Error approving transfer:', error);
-        throw error;
-      }
-
-      console.log('✅ Transfer approved successfully:', data);
-      return true;
-    } catch (error) {
-      console.error('Error approving transfer:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Decline a transfer
-   */
-  async declineTransfer(transferId: string, approvedBy: string): Promise<boolean> {
-    try {
-      console.log('❌ Declining transfer:', transferId);
-      const { data, error } = await supabase.rpc('decline_transfer', {
-        p_transfer_id: transferId,
-        p_approved_by: approvedBy
-      });
-
-      if (error) {
-        console.error('Error declining transfer:', error);
-        throw error;
-      }
-
-      console.log('❌ Transfer declined successfully:', data);
-      return true;
-    } catch (error) {
-      console.error('Error declining transfer:', error);
-      throw error;
-    }
-  }
 }
 
 // Export singleton instance
