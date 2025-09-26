@@ -204,7 +204,7 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
       transfer.from_storage.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transfer.to_storage.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transfer.notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transfer.size.toString().includes(searchTerm);
+      (transfer.size || 0).toString().includes(searchTerm);
     
     const matchesStatus = activeTab === 'all' || transfer.status === activeTab;
     
