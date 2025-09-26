@@ -172,6 +172,130 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
     return new Date(dateString).toLocaleString();
   };
 
+  // Get user-friendly record description
+  const getRecordDescription = (log: AuditLog) => {
+    if (!log.record_id) return '';
+    
+    // For LOGIN/LOGOUT actions, don't show record ID
+    if (log.action === 'LOGIN' || log.action === 'LOGOUT') {
+      return '';
+    }
+    
+    // For other actions, show a more pleasant description
+    const tableName = log.table_name.toLowerCase();
+    const action = log.action.toLowerCase();
+    
+    if (tableName.includes('user') || tableName.includes('profile')) {
+      return 'User account';
+    } else if (tableName.includes('order')) {
+      return 'Order record';
+    } else if (tableName.includes('inventory')) {
+      return 'Inventory item';
+    } else if (tableName.includes('warehouse')) {
+      return 'Warehouse entry';
+    } else if (tableName.includes('dispatch')) {
+      return 'Dispatch record';
+    } else if (tableName.includes('outlet')) {
+      return 'Outlet record';
+    } else if (tableName.includes('disposal')) {
+      return 'Disposal record';
+    } else if (tableName.includes('transfer')) {
+      return 'Transfer record';
+    } else if (tableName.includes('processing')) {
+      return 'Processing record';
+    } else if (tableName.includes('sorting')) {
+      return 'Sorting record';
+    } else {
+      return `${tableName.replace('_', ' ')} record`;
+    }
+  };
+
+  // Get more natural activity description
+  const getActivityDescription = (log: AuditLog) => {
+    const tableName = log.table_name.toLowerCase();
+    const action = log.action.toLowerCase();
+    
+    if (action === 'login') {
+      return 'Logged into the system';
+    } else if (action === 'logout') {
+      return 'Logged out of the system';
+    } else if (action === 'insert' || action === 'create') {
+      if (tableName.includes('user') || tableName.includes('profile')) {
+        return 'Created new user account';
+      } else if (tableName.includes('order')) {
+        return 'Created new order';
+      } else if (tableName.includes('inventory')) {
+        return 'Added inventory item';
+      } else if (tableName.includes('warehouse')) {
+        return 'Created warehouse entry';
+      } else if (tableName.includes('dispatch')) {
+        return 'Created dispatch record';
+      } else if (tableName.includes('outlet')) {
+        return 'Created outlet record';
+      } else if (tableName.includes('disposal')) {
+        return 'Created disposal record';
+      } else if (tableName.includes('transfer')) {
+        return 'Created transfer record';
+      } else if (tableName.includes('processing')) {
+        return 'Created processing record';
+      } else if (tableName.includes('sorting')) {
+        return 'Created sorting record';
+      } else {
+        return `Created new ${tableName.replace('_', ' ')} record`;
+      }
+    } else if (action === 'update') {
+      if (tableName.includes('user') || tableName.includes('profile')) {
+        return 'Updated user account';
+      } else if (tableName.includes('order')) {
+        return 'Updated order details';
+      } else if (tableName.includes('inventory')) {
+        return 'Updated inventory item';
+      } else if (tableName.includes('warehouse')) {
+        return 'Updated warehouse entry';
+      } else if (tableName.includes('dispatch')) {
+        return 'Updated dispatch record';
+      } else if (tableName.includes('outlet')) {
+        return 'Updated outlet record';
+      } else if (tableName.includes('disposal')) {
+        return 'Updated disposal record';
+      } else if (tableName.includes('transfer')) {
+        return 'Updated transfer record';
+      } else if (tableName.includes('processing')) {
+        return 'Updated processing record';
+      } else if (tableName.includes('sorting')) {
+        return 'Updated sorting record';
+      } else {
+        return `Updated ${tableName.replace('_', ' ')} record`;
+      }
+    } else if (action === 'delete') {
+      if (tableName.includes('user') || tableName.includes('profile')) {
+        return 'Deleted user account';
+      } else if (tableName.includes('order')) {
+        return 'Deleted order';
+      } else if (tableName.includes('inventory')) {
+        return 'Deleted inventory item';
+      } else if (tableName.includes('warehouse')) {
+        return 'Deleted warehouse entry';
+      } else if (tableName.includes('dispatch')) {
+        return 'Deleted dispatch record';
+      } else if (tableName.includes('outlet')) {
+        return 'Deleted outlet record';
+      } else if (tableName.includes('disposal')) {
+        return 'Deleted disposal record';
+      } else if (tableName.includes('transfer')) {
+        return 'Deleted transfer record';
+      } else if (tableName.includes('processing')) {
+        return 'Deleted processing record';
+      } else if (tableName.includes('sorting')) {
+        return 'Deleted sorting record';
+      } else {
+        return `Deleted ${tableName.replace('_', ' ')} record`;
+      }
+    } else {
+      return `Performed ${action} action on ${tableName.replace('_', ' ')}`;
+    }
+  };
+
   // Get user initials
   const getUserInitials = (user: UserWithLogs) => {
     return `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase();
@@ -339,16 +463,11 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
                                     </code>
                                   </div>
                                   <p className="text-sm text-gray-700 mb-2">
-                                    {log.action === 'INSERT' && 'Created new record'}
-                                    {log.action === 'UPDATE' && 'Updated record'}
-                                    {log.action === 'DELETE' && 'Deleted record'}
-                                    {log.action === 'LOGIN' && 'Logged into system'}
-                                    {log.action === 'LOGOUT' && 'Logged out of system'}
-                                    {!['INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT'].includes(log.action) && `Performed ${log.action} action`}
+                                    {getActivityDescription(log)}
                                   </p>
                                   {log.record_id && (
                                     <p className="text-xs text-gray-500">
-                                      Record ID: {log.record_id}
+                                      {getRecordDescription(log)}
                                     </p>
                                   )}
                                 </div>
