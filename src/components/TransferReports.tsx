@@ -562,17 +562,37 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Quantity</p>
+                <p className="text-sm font-medium text-gray-600">Total Approved Weight</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {filteredTransfers.reduce((sum, t) => sum + t.quantity, 0)}
+                  {filteredTransfers
+                    .filter(t => t.status === 'approved')
+                    .reduce((sum, t) => sum + (Number(t.weight_kg) || 0), 0)
+                    .toFixed(1)}kg
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
-                <Package className="w-6 h-6 text-green-600" />
+                <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
             </div>
             <div className="mt-2 flex items-center text-sm">
-              <span className="text-gray-600">Total pieces transferred</span>
+              <span className="text-gray-600">Weight of approved transfers</span>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Denied</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {filteredTransfers.filter(t => t.status === 'declined').length}
+                </p>
+              </div>
+              <div className="p-3 bg-red-100 rounded-lg">
+                <XCircle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center text-sm">
+              <span className="text-gray-600">Number of denied transfers</span>
             </div>
           </div>
           
