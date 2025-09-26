@@ -208,6 +208,30 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
     } else if (tableName.includes('inventory')) {
       return 'Inventory item';
     } else if (tableName.includes('warehouse')) {
+      // For warehouse entries, try to extract specific details from new_values
+      if (log.new_values) {
+        try {
+          const newValues = typeof log.new_values === 'string' ? JSON.parse(log.new_values) : log.new_values;
+          const details = [];
+          
+          if (newValues.total_weight) {
+            details.push(`${newValues.total_weight}kg`);
+          }
+          if (newValues.fish_type) {
+            details.push(newValues.fish_type);
+          }
+          if (newValues.condition) {
+            details.push(`(${newValues.condition})`);
+          }
+          if (newValues.entry_code) {
+            details.push(`[${newValues.entry_code}]`);
+          }
+          
+          return details.length > 0 ? details.join(' ') : 'Warehouse entry record';
+        } catch (error) {
+          return 'Warehouse entry record';
+        }
+      }
       return 'Warehouse entry record';
     } else if (tableName.includes('dispatch')) {
       return 'Dispatch record';
@@ -243,6 +267,17 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
       } else if (tableName.includes('inventory')) {
         return 'Added inventory item';
       } else if (tableName.includes('warehouse')) {
+        // Try to get more specific details for warehouse entries
+        if (log.new_values) {
+          try {
+            const newValues = typeof log.new_values === 'string' ? JSON.parse(log.new_values) : log.new_values;
+            if (newValues.fish_type && newValues.total_weight) {
+              return `Created new warehouse entry: ${newValues.fish_type} (${newValues.total_weight}kg)`;
+            }
+          } catch (error) {
+            // Fall back to generic description
+          }
+        }
         return 'Created new warehouse entry';
       } else if (tableName.includes('dispatch')) {
         return 'Created dispatch record';
@@ -267,6 +302,17 @@ function AuditLogsView({ onNavigate }: AuditLogsViewProps) {
       } else if (tableName.includes('inventory')) {
         return 'Updated inventory item';
       } else if (tableName.includes('warehouse')) {
+        // Try to get more specific details for warehouse entry updates
+        if (log.new_values) {
+          try {
+            const newValues = typeof log.new_values === 'string' ? JSON.parse(log.new_values) : log.new_values;
+            if (newValues.fish_type && newValues.total_weight) {
+              return `Updated warehouse entry: ${newValues.fish_type} (${newValues.total_weight}kg)`;
+            }
+          } catch (error) {
+            // Fall back to generic description
+          }
+        }
         return 'Updated warehouse entry details';
       } else if (tableName.includes('dispatch')) {
         return 'Updated dispatch record';
