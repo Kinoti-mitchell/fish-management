@@ -104,12 +104,20 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
     setError(null);
     
     try {
+      console.log('🔄 Loading sorting data...');
+      
       // Load data from database with optimized queries
       const [thresholds, batches, records] = await Promise.all([
         sortingService.getSizeClassThresholds(),
         sortingService.getSortingBatches({ status: 'completed', limit: 20 }), // Only get recent completed batches
         sortingService.getProcessingRecordsReadyForSorting()
       ]);
+
+      console.log('📊 Data loaded:', {
+        thresholds: thresholds.length,
+        batches: batches.length,
+        records: records.length
+      });
 
       // The service now handles filtering, so we can use the data directly
       setSizeClassThresholds(thresholds);
@@ -144,6 +152,7 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
             }
           ]);
         } else {
+          console.log('🏪 Storage locations loaded:', storageLocationsData?.length || 0);
           setStorageLocations(storageLocationsData || []);
         }
       } catch (error) {
@@ -167,7 +176,7 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
         ]);
       }
     } catch (err) {
-      console.error('Error loading sorting data:', err);
+      console.error('❌ Error loading sorting data:', err);
       setError('Failed to load sorting data. Please try again.');
       
       // Set empty arrays on error
@@ -581,6 +590,35 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
         </div>
       )}
 
+      {/* Debug Information - Only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-yellow-800 text-sm">Debug Information</CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs text-yellow-700">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <span className="font-medium">Processing Records:</span> {processingRecords.length}
+              </div>
+              <div>
+                <span className="font-medium">Sorting Batches:</span> {sortingBatches.length}
+              </div>
+              <div>
+                <span className="font-medium">Size Thresholds:</span> {sizeClassThresholds.length}
+              </div>
+              <div>
+                <span className="font-medium">Storage Locations:</span> {storageLocations.length}
+              </div>
+            </div>
+            <div className="mt-2">
+              <span className="font-medium">Loading:</span> {loading ? 'Yes' : 'No'} | 
+              <span className="font-medium ml-2">Error:</span> {error ? 'Yes' : 'No'}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Stats */}
       <div className="px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -660,6 +698,32 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
                 <ArrowRight className="w-4 h-4" />
                 <span>Process fish first, then they'll appear here for sorting</span>
               </div>
+              
+              {/* Development Mode - Show sample data button */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      // Add sample data for testing
+                      const sampleRecord = {
+                        id: 'sample-1',
+                        processing_code: 'PROC-001',
+                        processing_date: new Date().toISOString(),
+                        post_processing_weight: 25.5,
+                        ready_for_dispatch_count: 150,
+                        fish_type: 'Tilapia',
+                        created_at: new Date().toISOString()
+                      };
+                      setProcessingRecords([sampleRecord]);
+                      toast.success('Sample data loaded for testing');
+                    }}
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  >
+                    Load Sample Data (Dev Only)
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -760,6 +824,47 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
                 <ArrowRight className="w-4 h-4" />
                 <span>Sort fish from processing records above to create batches</span>
               </div>
+              
+              {/* Development Mode - Show sample data button */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      // Add sample sorting batch for testing
+                      const sampleBatch = {
+                        id: 'batch-sample-1',
+                        batch_number: 'BATCH-001',
+                        processing_record_id: 'sample-1',
+                        total_weight_grams: 25500, // 25.5kg
+                        total_pieces: 150,
+                        sorting_date: new Date().toISOString().split('T')[0],
+                        status: 'completed',
+                        size_distribution: {
+                          '3': 5.2,
+                          '4': 8.1,
+                          '5': 7.8,
+                          '6': 4.4
+                        },
+                        created_at: new Date().toISOString(),
+                        processing_record: {
+                          id: 'sample-1',
+                          processing_code: 'PROC-001',
+                          processing_date: new Date().toISOString(),
+                          post_processing_weight: 25.5,
+                          ready_for_dispatch_count: 150,
+                          fish_type: 'Tilapia'
+                        }
+                      };
+                      setSortingBatches([sampleBatch]);
+                      toast.success('Sample sorting batch loaded for testing');
+                    }}
+                    className="text-green-600 border-green-300 hover:bg-green-50"
+                  >
+                    Load Sample Batch (Dev Only)
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -866,6 +971,41 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
           </div>
         </CardHeader>
         <CardContent className="p-6">
+          {sizeClassThresholds.length === 0 && process.env.NODE_ENV === 'development' && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-yellow-800">No Size Class Thresholds</h4>
+                  <p className="text-sm text-yellow-700">Load sample thresholds for testing</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const sampleThresholds = [
+                      { id: '1', class_number: 0, min_weight_grams: 0, max_weight_grams: 50, description: 'Extra Small', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '2', class_number: 1, min_weight_grams: 50, max_weight_grams: 100, description: 'Small', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '3', class_number: 2, min_weight_grams: 100, max_weight_grams: 150, description: 'Medium Small', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '4', class_number: 3, min_weight_grams: 150, max_weight_grams: 200, description: 'Medium', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '5', class_number: 4, min_weight_grams: 200, max_weight_grams: 250, description: 'Medium Large', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '6', class_number: 5, min_weight_grams: 250, max_weight_grams: 300, description: 'Large', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '7', class_number: 6, min_weight_grams: 300, max_weight_grams: 400, description: 'Extra Large', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '8', class_number: 7, min_weight_grams: 400, max_weight_grams: 500, description: 'Jumbo', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '9', class_number: 8, min_weight_grams: 500, max_weight_grams: 600, description: 'Super Jumbo', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '10', class_number: 9, min_weight_grams: 600, max_weight_grams: 800, description: 'Premium', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: '11', class_number: 10, min_weight_grams: 800, max_weight_grams: 999999.99, description: 'Giant', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+                    ];
+                    setSizeClassThresholds(sampleThresholds);
+                    toast.success('Sample size class thresholds loaded for testing');
+                  }}
+                  className="text-yellow-600 border-yellow-300 hover:bg-yellow-50"
+                >
+                  Load Sample Thresholds
+                </Button>
+              </div>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sizeClassThresholds.map((threshold) => (
               <div key={threshold.class_number} className="group p-4 border border-gray-200 rounded-xl hover:border-green-300 hover:shadow-md transition-all duration-200 bg-white">
