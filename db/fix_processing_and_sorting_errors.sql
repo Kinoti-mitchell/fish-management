@@ -18,7 +18,12 @@ DROP POLICY IF EXISTS "Allow all authenticated users to update processing record
 -- Re-enable RLS
 ALTER TABLE processing_records ENABLE ROW LEVEL SECURITY;
 
--- Create simple, permissive policies
+-- Create simple, permissive policies (drop first to avoid conflicts)
+DROP POLICY IF EXISTS "Allow all authenticated users to view processing records" ON processing_records;
+DROP POLICY IF EXISTS "Allow all authenticated users to insert processing records" ON processing_records;
+DROP POLICY IF EXISTS "Allow all authenticated users to update processing records" ON processing_records;
+DROP POLICY IF EXISTS "Allow all authenticated users to delete processing records" ON processing_records;
+
 CREATE POLICY "Allow all authenticated users to view processing records" ON processing_records
     FOR SELECT USING (auth.uid() IS NOT NULL);
 
@@ -151,7 +156,12 @@ DROP POLICY IF EXISTS "Enable delete for authenticated users" ON inventory_entri
 -- Re-enable RLS
 ALTER TABLE inventory_entries ENABLE ROW LEVEL SECURITY;
 
--- Create simple policies
+-- Create simple policies (drop first to avoid conflicts)
+DROP POLICY IF EXISTS "Allow all authenticated users to view inventory entries" ON inventory_entries;
+DROP POLICY IF EXISTS "Allow all authenticated users to insert inventory entries" ON inventory_entries;
+DROP POLICY IF EXISTS "Allow all authenticated users to update inventory entries" ON inventory_entries;
+DROP POLICY IF EXISTS "Allow all authenticated users to delete inventory entries" ON inventory_entries;
+
 CREATE POLICY "Allow all authenticated users to view inventory entries" ON inventory_entries
     FOR SELECT USING (auth.uid() IS NOT NULL);
 
@@ -176,7 +186,12 @@ DROP POLICY IF EXISTS "Enable delete for authenticated users" ON sorting_batches
 -- Re-enable RLS
 ALTER TABLE sorting_batches ENABLE ROW LEVEL SECURITY;
 
--- Create simple policies
+-- Create simple policies (drop first to avoid conflicts)
+DROP POLICY IF EXISTS "Allow all authenticated users to view sorting batches" ON sorting_batches;
+DROP POLICY IF EXISTS "Allow all authenticated users to insert sorting batches" ON sorting_batches;
+DROP POLICY IF EXISTS "Allow all authenticated users to update sorting batches" ON sorting_batches;
+DROP POLICY IF EXISTS "Allow all authenticated users to delete sorting batches" ON sorting_batches;
+
 CREATE POLICY "Allow all authenticated users to view sorting batches" ON sorting_batches
     FOR SELECT USING (auth.uid() IS NOT NULL);
 
@@ -201,7 +216,12 @@ DROP POLICY IF EXISTS "Enable delete for authenticated users" ON sorting_results
 -- Re-enable RLS
 ALTER TABLE sorting_results ENABLE ROW LEVEL SECURITY;
 
--- Create simple policies
+-- Create simple policies (drop first to avoid conflicts)
+DROP POLICY IF EXISTS "Allow all authenticated users to view sorting results" ON sorting_results;
+DROP POLICY IF EXISTS "Allow all authenticated users to insert sorting results" ON sorting_results;
+DROP POLICY IF EXISTS "Allow all authenticated users to update sorting results" ON sorting_results;
+DROP POLICY IF EXISTS "Allow all authenticated users to delete sorting results" ON sorting_results;
+
 CREATE POLICY "Allow all authenticated users to view sorting results" ON sorting_results
     FOR SELECT USING (auth.uid() IS NOT NULL);
 
