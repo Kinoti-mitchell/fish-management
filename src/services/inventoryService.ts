@@ -1494,7 +1494,7 @@ class InventoryService {
   async createBatchTransfer(
     fromStorageLocationId: string,
     toStorageLocationId: string,
-    sizeData: Array<{size: number; quantity: number; weightKg: number}>,
+    sizeData: Array<{size: number; quantity?: number; weightKg: number}>,
     notes?: string,
     requestedBy?: string
   ): Promise<{ success: boolean; transferId: string; message: string }> {
@@ -1526,10 +1526,17 @@ class InventoryService {
         }
       }
 
+      // Ensure proper data types for the transfer (weight-focused approach)
+      const normalizedSizeData = sizeData.map(item => ({
+        size: Number(item.size),
+        quantity: item.quantity ? Number(item.quantity) : 1, // Default to 1 if not provided
+        weightKg: Number(item.weightKg)
+      }));
+
       console.log('🔍 [InventoryService] Creating batch transfer with data:', {
         fromStorageLocationId,
         toStorageLocationId,
-        sizeData,
+        sizeData: normalizedSizeData,
         notes
       });
       
@@ -1537,7 +1544,7 @@ class InventoryService {
         return await supabase.rpc('create_batch_transfer', {
           p_from_storage_location_id: fromStorageLocationId,
           p_to_storage_location_id: toStorageLocationId,
-          p_size_data: sizeData,
+          p_size_data: normalizedSizeData,
           p_notes: notes || null,
           p_requested_by: requestedBy || null
         });

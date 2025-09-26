@@ -198,10 +198,10 @@ export default function TransferDialog({
       
       console.log(`Creating batch transfer for ${selectedItems.length} selected size classes, total quantity: ${totalQuantity}, total weight: ${totalWeight}kg`);
       
-      // Prepare size data for batch transfer
+      // Prepare size data for batch transfer (weight-focused, quantity optional)
       const sizeData = selectedItems.map(item => ({
         size: item.size,
-        quantity: item.quantity,
+        quantity: 1, // Default to 1 since we focus on weights, not piece counts
         weightKg: item.total_weight
       }));
       
