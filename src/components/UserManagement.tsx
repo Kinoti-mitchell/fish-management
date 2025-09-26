@@ -23,6 +23,7 @@ import {
 import { NavigationSection } from "../types";
 import { supabase, handleSupabaseError, withRetry } from "../lib/supabaseClient";
 import { toast } from "sonner";
+import { auditLog } from "../utils/auditLogger";
 import { RioFishLogo } from "./RioFishLogo";
 import { PermissionsDropdown } from "./PermissionsDropdown";
 import { UserPermissionsView } from "./UserPermissionsView";
@@ -567,33 +568,13 @@ export default function UserManagement({ onNavigate }: UserManagementProps) {
     return details;
   };
 
-  // Audit logging function
+  // Audit logging function - using centralized audit logger
   const logAuditEvent = async (action: string, tableName: string, recordId?: string, oldValues?: any, newValues?: any) => {
     try {
-      // Get current user from session storage (custom auth system)
-      const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
-      
-      if (!currentUser) return; // Skip logging if no authenticated user
-      
-      const auditData = {
-        user_id: currentUser.id,
-        action,
-        table_name: tableName,
-        record_id: recordId,
-        old_values: oldValues ? JSON.stringify(oldValues) : null,
-        new_values: newValues ? JSON.stringify(newValues) : null,
-        ip_address: null, // Could be enhanced to capture real IP
-        user_agent: navigator.userAgent,
-        created_at: new Date().toISOString()
-      };
-      
-      const { error } = await supabase
-        .from('audit_logs')
-        .insert([auditData]);
-      
-      if (error) {
-        console.warn('Failed to log audit event:', error);
-      }
+      await auditLog.custom(action, tableName, recordId, {
+        old_values: oldValues,
+        new_values: newValues
+      });
     } catch (error) {
       console.warn('Failed to log audit event:', error);
     }
