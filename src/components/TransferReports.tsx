@@ -140,9 +140,9 @@ export default function TransferReports({ onNavigate }: TransferReportsProps = {
       const groupedData = groupBatchTransfers(data);
       console.log('📦 Grouped transfers:', groupedData);
       
-      // For debugging: show individual transfers instead of grouped ones
-      console.log('🔍 Individual transfers (no grouping):', data);
-      setTransfers(data); // Use individual transfers instead of grouped ones
+      // Use grouped transfers for proper bulk transfer display
+      console.log('🔍 Individual transfers (before grouping):', data);
+      setTransfers(groupedData); // Use grouped transfers for bulk transfer display
     } catch (err: any) {
       console.error("Error fetching transfer history:", err);
       setError(err.message || "Failed to fetch transfer history");
