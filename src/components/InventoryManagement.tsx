@@ -1159,7 +1159,7 @@ export default function InventoryManagement({
                         
                         {/* Quick Actions */}
                     <div className="flex items-center gap-2">
-                          {unit.utilization_percent > 90 && (
+                          {unit.utilization_percent >= 95 && (
                             <div className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
                               <AlertCircle className="w-3 h-3" />
                               <span>Full</span>
@@ -1257,8 +1257,8 @@ export default function InventoryManagement({
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs text-gray-500">Capacity</span>
                         <span className={`text-xs font-medium ${
-                          unit.utilization_percent > 90 ? 'text-red-600' :
-                          unit.utilization_percent > 70 ? 'text-yellow-600' : 'text-green-600'
+                          unit.utilization_percent >= 95 ? 'text-red-600' :
+                          unit.utilization_percent > 80 ? 'text-yellow-600' : 'text-green-600'
                         }`}>
                           {unit.utilization_percent.toFixed(1)}%
                         </span>
@@ -1266,11 +1266,11 @@ export default function InventoryManagement({
                       <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                         <div 
                           className={`h-3 rounded-full transition-all duration-500 ease-out ${
-                            unit.utilization_percent > 90 ? 'bg-gradient-to-r from-red-400 to-red-600' :
-                            unit.utilization_percent > 70 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 
+                            unit.utilization_percent >= 95 ? 'bg-gradient-to-r from-red-400 to-red-600' :
+                            unit.utilization_percent > 80 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 
                             'bg-gradient-to-r from-green-400 to-green-600'
                           }`}
-                          style={{ width: `${Math.min(unit.utilization_percent, 100)}%` }}
+                          style={{ width: `${unit.utilization_percent >= 95 ? 100 : Math.min(unit.utilization_percent, 100)}%` }}
                         ></div>
                     </div>
                       <div className="flex justify-between text-xs text-gray-400 mt-1">
