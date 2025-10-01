@@ -1479,8 +1479,8 @@ export default function InventoryManagement({
       {/* Batch Details Dialog */}
       {batchDetailsOpen && (
         <Dialog open={batchDetailsOpen} onOpenChange={setBatchDetailsOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-orange-600" />
                 Batch Details - {selectedBatch?.batch_number}
@@ -1488,11 +1488,11 @@ export default function InventoryManagement({
             </DialogHeader>
             
             {batchDetails ? (
-              <div className="space-y-6">
+              <div className="space-y-6 overflow-y-auto flex-1 pr-2">
                 {/* Batch Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-gray-900 mb-3">Batch Information</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-gray-600">Batch Number</label>
                       <p className="font-semibold text-gray-900">{batchDetails.batch?.batch_number}</p>
@@ -1520,7 +1520,7 @@ export default function InventoryManagement({
 
                 {/* Sizes Information */}
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">Remaining Sizes</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">Available Sizes (Not Ordered)</h3>
                   <div className="space-y-3">
                     {batchDetails.sizes?.map((size: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -1535,14 +1535,14 @@ export default function InventoryManagement({
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-blue-600">{size.total_weight_kg?.toFixed(1)}kg</p>
-                          <p className="text-xs text-gray-400">{size.total_pieces} pieces</p>
+                          <p className="text-xs text-gray-400">Available</p>
                         </div>
                       </div>
                     ))}
                     {(!batchDetails.sizes || batchDetails.sizes.length === 0) && (
                       <div className="text-center py-4 text-gray-500">
                         <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                        <p className="text-sm">No sizes remaining in this batch</p>
+                        <p className="text-sm">All sizes in this batch have been ordered</p>
                       </div>
                     )}
                   </div>
@@ -1554,6 +1554,17 @@ export default function InventoryManagement({
                 <p className="text-sm text-gray-500">Loading batch details...</p>
               </div>
             )}
+            
+            {/* Close Button */}
+            <div className="flex justify-end pt-4 border-t border-gray-200 flex-shrink-0">
+              <Button 
+                onClick={() => setBatchDetailsOpen(false)}
+                variant="outline"
+                className="px-6"
+              >
+                Close
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       )}
