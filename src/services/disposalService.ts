@@ -248,6 +248,12 @@ class DisposalService {
       const eligibleItems = (data || []).filter((result: any) => {
         const storageLocation = storageMap.get(result.storage_location_id);
         
+        // First check: Must have actual weight (not 0kg)
+        if (!result.total_weight_grams || result.total_weight_grams <= 0) {
+          console.log('❌ [DisposalService] Item filtered out - no weight:', result.id, result.total_weight_grams);
+          return false;
+        }
+        
         // Get processing date
         const processingDate = result.sorting_batch?.processing_record?.processing_date || 
                               result.sorting_batch?.created_at?.split('T')[0];
@@ -258,6 +264,13 @@ class DisposalService {
         }
 
         const processDate = new Date(processingDate);
+        
+        // Check if processing date is valid and not in the future
+        if (isNaN(processDate.getTime()) || processDate > new Date()) {
+          console.log('❌ [DisposalService] Item filtered out - invalid or future date:', result.id, processingDate);
+          return false;
+        }
+        
         const daysInStorage = Math.floor((new Date().getTime() - processDate.getTime()) / (1000 * 60 * 60 * 24));
         
         // Check age criteria - if daysOld is 0, show all items regardless of age
@@ -278,6 +291,7 @@ class DisposalService {
           batchNumber: result.sorting_batch?.batch_number,
           processingDate,
           daysInStorage,
+          weightGrams: result.total_weight_grams,
           isOldEnough,
           hasStorageIssues,
           storageStatus: storageLocation?.status,

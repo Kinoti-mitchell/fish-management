@@ -805,10 +805,19 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             type="date"
                             value={fromDate}
                             onChange={(e) => {
-                              setFromDate(e.target.value);
+                              const selectedDate = e.target.value;
+                              const today = new Date().toISOString().split('T')[0];
+                              
+                              // Prevent future dates
+                              if (selectedDate > today) {
+                                toast.error("Cannot select future dates for disposal filtering");
+                                return;
+                              }
+                              
+                              setFromDate(selectedDate);
                               // Automatically set To Date to today when From Date is selected
-                              if (e.target.value) {
-                                setToDate(new Date().toISOString().split('T')[0]);
+                              if (selectedDate) {
+                                setToDate(today);
                               }
                             }}
                             className="mt-1"
@@ -836,9 +845,27 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                             id="toDate"
                             type="date"
                             value={toDate}
-                            onChange={(e) => setToDate(e.target.value)}
+                            onChange={(e) => {
+                              const selectedDate = e.target.value;
+                              const today = new Date().toISOString().split('T')[0];
+                              
+                              // Prevent future dates
+                              if (selectedDate > today) {
+                                toast.error("Cannot select future dates for disposal filtering");
+                                return;
+                              }
+                              
+                              // Ensure To Date is not before From Date
+                              if (fromDate && selectedDate < fromDate) {
+                                toast.error("To Date cannot be before From Date");
+                                return;
+                              }
+                              
+                              setToDate(selectedDate);
+                            }}
                             className="mt-1"
                             max={new Date().toISOString().split('T')[0]}
+                            min={fromDate || undefined}
                             disabled={daysOld > 0 && daysOld <= 7}
                           />
                           <p className="text-xs text-gray-500 mt-1 break-words">
