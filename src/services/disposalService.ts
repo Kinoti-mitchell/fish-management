@@ -172,7 +172,7 @@ class DisposalService {
   /**
    * Get inventory items eligible for disposal with improved filtering
    */
-  async getInventoryForDisposal(daysOld = 30, includeStorageIssues = true) {
+  async getInventoryForDisposal(daysOld = 30, includeStorageIssues = true, maxDaysOld?: number, inactiveStorageOnly = false) {
     try {
       console.log('🔍 [DisposalService] Getting inventory for disposal with improved filtering...');
       console.log('📊 [DisposalService] Filter criteria:', { daysOld, includeStorageIssues });
@@ -273,16 +273,32 @@ class DisposalService {
         
         const daysInStorage = Math.floor((new Date().getTime() - processDate.getTime()) / (1000 * 60 * 60 * 24));
         
-        // Check age criteria - if daysOld is 0, show all items regardless of age
-        const isOldEnough = daysOld === 0 || daysInStorage >= daysOld;
+        // Check age criteria - handle both single threshold and age ranges
+        let isOldEnough = false;
+        if (daysOld === 0) {
+          isOldEnough = true; // Show all items regardless of age
+        } else if (maxDaysOld && maxDaysOld > daysOld) {
+          // Age range: items between daysOld and maxDaysOld
+          isOldEnough = daysInStorage >= daysOld && daysInStorage <= maxDaysOld;
+        } else {
+          // Single threshold: items older than daysOld
+          isOldEnough = daysInStorage >= daysOld;
+        }
         
         // Check storage issues
-        const hasStorageIssues = includeStorageIssues && (
-          !result.storage_location_id || 
-          !storageLocation || 
-          storageLocation.status !== 'active' ||
-          (storageLocation.current_usage_kg > storageLocation.capacity_kg)
-        );
+        let hasStorageIssues = false;
+        if (inactiveStorageOnly) {
+          // Only show items in inactive storage
+          hasStorageIssues = storageLocation && storageLocation.status !== 'active';
+        } else if (includeStorageIssues) {
+          // Show items with any storage issues
+          hasStorageIssues = (
+            !result.storage_location_id || 
+            !storageLocation || 
+            storageLocation.status !== 'active' ||
+            (storageLocation.current_usage_kg > storageLocation.capacity_kg)
+          );
+        }
 
         const isEligible = isOldEnough || hasStorageIssues;
 

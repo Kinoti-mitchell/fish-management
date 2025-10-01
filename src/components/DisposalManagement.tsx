@@ -74,15 +74,29 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
   const [notes, setNotes] = useState<string>("");
   const [daysOld, setDaysOld] = useState<number>(0);
   const [includeStorageIssues, setIncludeStorageIssues] = useState<boolean>(true);
+  const [ageCategory, setAgeCategory] = useState<string>("all");
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
+  const [customDaysOld, setCustomDaysOld] = useState<number>(20);
 
   const disposalMethods = [
     { value: "waste", label: "Waste Disposal", description: "General waste disposal" },
     { value: "compost", label: "Compost", description: "Convert to compost" },
     { value: "donation", label: "Donation", description: "Donate to charity" },
     { value: "return_to_farmer", label: "Return to Farmer", description: "Return to original farmer" }
+  ];
+
+  const ageCategories = [
+    { value: "all", label: "All Items", description: "Show all available items", days: 0 },
+    { value: "recent", label: "Recent (1-7 days)", description: "Items 1-7 days old", days: 7 },
+    { value: "aging", label: "Aging (8-30 days)", description: "Items 8-30 days old", days: 30 },
+    { value: "old", label: "Old (31-60 days)", description: "Items 31-60 days old", days: 60 },
+    { value: "very_old", label: "Very Old (61-100 days)", description: "Items 61-100 days old", days: 100 },
+    { value: "expired", label: "Expired (100+ days)", description: "Items over 100 days old", days: 1000 },
+    { value: "inactive_storage", label: "Inactive Storage", description: "Items in inactive storage locations", days: 0 },
+    { value: "storage_issues", label: "All Storage Issues", description: "Items with any storage problems", days: 0 },
+    { value: "custom_age", label: "Custom Age", description: "Items older than specified days", days: 0 }
   ];
 
   useEffect(() => {
@@ -94,7 +108,40 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     if (createDialogOpen) {
       loadInventoryForDisposal();
     }
-  }, [daysOld, includeStorageIssues, fromDate, toDate, createDialogOpen]);
+  }, [daysOld, includeStorageIssues, fromDate, toDate, createDialogOpen, ageCategory, customDaysOld]);
+
+  // Handle age category changes
+  useEffect(() => {
+    const selectedCategory = ageCategories.find(cat => cat.value === ageCategory);
+    if (selectedCategory) {
+      if (ageCategory === "storage_issues") {
+        setDaysOld(0);
+        setIncludeStorageIssues(true);
+        setFromDate("");
+        setToDate("");
+      } else if (ageCategory === "inactive_storage") {
+        setDaysOld(0);
+        setIncludeStorageIssues(true);
+        setFromDate("");
+        setToDate("");
+      } else if (ageCategory === "custom_age") {
+        setDaysOld(customDaysOld);
+        setIncludeStorageIssues(false);
+        setFromDate("");
+        setToDate("");
+      } else if (ageCategory === "all") {
+        setDaysOld(0);
+        setIncludeStorageIssues(false);
+        setFromDate("");
+        setToDate("");
+      } else {
+        setDaysOld(selectedCategory.days);
+        setIncludeStorageIssues(false);
+        setFromDate("");
+        setToDate("");
+      }
+    }
+  }, [ageCategory]);
 
   // Auto-set date range when daysOld changes (only for certain thresholds)
   useEffect(() => {
@@ -222,8 +269,27 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
         toDate 
       });
       
+      // Determine age range and storage filtering based on category
+      let maxDaysOld: number | undefined = undefined;
+      let inactiveStorageOnly = false;
+      
+      if (ageCategory === "recent") {
+        maxDaysOld = 7;
+      } else if (ageCategory === "aging") {
+        maxDaysOld = 30;
+      } else if (ageCategory === "old") {
+        maxDaysOld = 60;
+      } else if (ageCategory === "very_old") {
+        maxDaysOld = 100;
+      } else if (ageCategory === "inactive_storage") {
+        inactiveStorageOnly = true;
+      } else if (ageCategory === "custom_age") {
+        // Use custom days old value
+        setDaysOld(customDaysOld);
+      }
+      
       // Use the disposal service to get inventory with current criteria
-      const data = await disposalService.getInventoryForDisposal(daysOld, includeStorageIssues);
+      const data = await disposalService.getInventoryForDisposal(daysOld, includeStorageIssues, maxDaysOld, inactiveStorageOnly);
       
       console.log('📊 [DisposalManagement] Raw data from service:', data?.length || 0, 'items');
       
@@ -269,6 +335,11 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
         
         console.log('📊 [DisposalManagement] Items after date filtering:', filteredData.length);
       }
+      
+      // Sort by age (oldest first) for better organization
+      filteredData.sort((a: InventoryForDisposal, b: InventoryForDisposal) => {
+        return b.days_in_storage - a.days_in_storage;
+      });
       
       console.log('📊 [DisposalManagement] Final filtered data:', filteredData.length, 'items');
       setInventoryForDisposal(filteredData);
@@ -604,6 +675,8 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     setSelectedItems([]);
     setFromDate("");
     setToDate("");
+    setAgeCategory("all");
+    setCustomDaysOld(20);
   };
 
   const getStatusColor = (status: string) => {
@@ -770,25 +843,93 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                     <CardContent className="space-y-3">
                       <div className="grid grid-cols-1 gap-4">
                         <div>
-                          <Label htmlFor="daysOld" className="text-sm font-medium">Days Old Threshold</Label>
-                          <Input
-                            id="daysOld"
-                            type="number"
-                            value={daysOld}
-                            onChange={(e) => setDaysOld(Number(e.target.value))}
-                            placeholder="30"
-                            className="mt-1"
-                            min="0"
-                          />
+                          <Label htmlFor="ageCategory" className="text-sm font-medium">Disposal Reason *</Label>
+                          <Select value={ageCategory} onValueChange={setAgeCategory}>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Select disposal reason" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ageCategories.map((category) => (
+                                <SelectItem key={category.value} value={category.value}>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{category.label}</span>
+                                    <span className="text-xs text-gray-500">{category.description}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="includeStorageIssues"
-                            checked={includeStorageIssues}
-                            onCheckedChange={setIncludeStorageIssues}
-                          />
-                          <Label htmlFor="includeStorageIssues" className="text-sm">Include Storage Issues</Label>
-                        </div>
+                        
+                        {/* Dynamic fields based on selected reason */}
+                        {ageCategory === "custom_age" && (
+                          <div>
+                            <Label htmlFor="customDaysOld" className="text-sm font-medium">Days Old Threshold</Label>
+                            <Input
+                              id="customDaysOld"
+                              type="number"
+                              value={customDaysOld}
+                              onChange={(e) => setCustomDaysOld(Number(e.target.value))}
+                              placeholder="20"
+                              className="mt-1"
+                              min="1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Show items older than this many days</p>
+                          </div>
+                        )}
+                        
+                        {ageCategory === "expired" && (
+                          <div>
+                            <Label htmlFor="expiredDate" className="text-sm font-medium">Expiration Date</Label>
+                            <Input
+                              id="expiredDate"
+                              type="date"
+                              value={fromDate}
+                              onChange={(e) => {
+                                const selectedDate = e.target.value;
+                                const today = new Date().toISOString().split('T')[0];
+                                
+                                if (selectedDate > today) {
+                                  toast.error("Cannot select future dates for expired items");
+                                  return;
+                                }
+                                
+                                setFromDate(selectedDate);
+                                setToDate(today);
+                              }}
+                              className="mt-1"
+                              max={new Date().toISOString().split('T')[0]}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Show items processed before this date</p>
+                          </div>
+                        )}
+                        
+                        {(ageCategory === "storage_issues" || ageCategory === "inactive_storage") && (
+                          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                              <span className="text-sm font-medium text-yellow-800">Storage Issues Detected</span>
+                            </div>
+                            <p className="text-xs text-yellow-700">
+                              {ageCategory === "inactive_storage" 
+                                ? "Items in inactive storage locations will be shown"
+                                : "Items with storage problems (inactive, over-capacity, missing location) will be shown"
+                              }
+                            </p>
+                          </div>
+                        )}
+                        
+                        {ageCategory === "all" && (
+                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Package className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm font-medium text-blue-800">All Available Items</span>
+                            </div>
+                            <p className="text-xs text-blue-700">
+                              All items in storage will be shown for selection
+                            </p>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="grid grid-cols-1 gap-4">
@@ -1006,11 +1147,25 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                           .toFixed(2)} kg</span>
                       </div>
                       <Badge variant="outline" className="text-xs break-words">
-                        {daysOld === 0 
-                          ? 'Showing all items (no age filter)' 
-                          : daysOld <= 7
-                            ? `Showing items ${daysOld}+ days old (auto-range: ${fromDate} to ${toDate})`
-                            : `Showing items ${daysOld}+ days old (manual range: ${fromDate || 'any'} to ${toDate || 'any'})`
+                        {ageCategory === "all" 
+                          ? 'Showing all items' 
+                          : ageCategory === "storage_issues"
+                            ? 'Showing items with storage issues'
+                            : ageCategory === "inactive_storage"
+                              ? 'Showing items in inactive storage'
+                              : ageCategory === "expired"
+                                ? 'Showing items 100+ days old'
+                                : ageCategory === "recent"
+                                  ? 'Showing items 1-7 days old'
+                                  : ageCategory === "aging"
+                                    ? 'Showing items 8-30 days old'
+                                    : ageCategory === "old"
+                                      ? 'Showing items 31-60 days old'
+                                      : ageCategory === "very_old"
+                                        ? 'Showing items 61-100 days old'
+                                        : ageCategory === "custom_age"
+                                          ? `Showing items ${customDaysOld}+ days old`
+                                          : `Showing items ${daysOld}+ days old`
                         }
                       </Badge>
                     </div>
