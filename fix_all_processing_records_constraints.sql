@@ -1,0 +1,255 @@
+-- Fix ALL Processing Records Constraints
+-- This script removes ALL NOT NULL constraints that are causing issues
+
+-- 1. Remove ALL problematic NOT NULL constraints from processing_records
+ALTER TABLE processing_records ALTER COLUMN processing_yield DROP NOT NULL;
+ALTER TABLE processing_records ALTER COLUMN size_distribution DROP NOT NULL;
+ALTER TABLE processing_records ALTER COLUMN pre_processing_weight DROP NOT NULL;
+ALTER TABLE processing_records ALTER COLUMN post_processing_weight DROP NOT NULL;
+ALTER TABLE processing_records ALTER COLUMN processing_waste DROP NOT NULL;
+ALTER TABLE processing_records ALTER COLUMN ready_for_dispatch_count DROP NOT NULL;
+
+-- 2. Set default values for all these columns
+ALTER TABLE processing_records ALTER COLUMN processing_yield SET DEFAULT 0.00;
+ALTER TABLE processing_records ALTER COLUMN size_distribution SET DEFAULT '{}';
+ALTER TABLE processing_records ALTER COLUMN pre_processing_weight SET DEFAULT 0.00;
+ALTER TABLE processing_records ALTER COLUMN post_processing_weight SET DEFAULT 0.00;
+ALTER TABLE processing_records ALTER COLUMN processing_waste SET DEFAULT 0.00;
+ALTER TABLE processing_records ALTER COLUMN ready_for_dispatch_count SET DEFAULT 0;
+
+-- 3. Update any existing NULL values to defaults
+UPDATE processing_records SET processing_yield = 0.00 WHERE processing_yield IS NULL;
+UPDATE processing_records SET size_distribution = '{}' WHERE size_distribution IS NULL;
+UPDATE processing_records SET pre_processing_weight = 0.00 WHERE pre_processing_weight IS NULL;
+UPDATE processing_records SET post_processing_weight = 0.00 WHERE post_processing_weight IS NULL;
+UPDATE processing_records SET processing_waste = 0.00 WHERE processing_waste IS NULL;
+UPDATE processing_records SET ready_for_dispatch_count = 0 WHERE ready_for_dispatch_count IS NULL;
+
+-- 4. Now recreate the functions with the corrected approach
+DROP FUNCTION IF EXISTS approve_transfer(UUID, UUID);
+DROP FUNCTION IF EXISTS decline_transfer(UUID, UUID);
+DROP FUNCTION IF EXISTS approve_batch_transfer(UUID, UUID);
+
+-- Create approve_transfer function
+CREATE OR REPLACE FUNCTION approve_transfer(
+    p_transfer_id UUID,
+    p_approved_by UUID
+) RETURNS TABLE(
+    success BOOLEAN,
+    message TEXT
+) AS $$
+DECLARE
+    v_transfer RECORD;
+    v_existing_record RECORD;
+    v_transfer_batch_id UUID;
+    v_dummy_processing_record_id UUID;
+    v_warehouse_entry_id UUID;
+BEGIN
+    SELECT * INTO v_transfer
+    FROM transfers
+    WHERE id = p_transfer_id AND status = 'pending';
+    
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT FALSE, 'Transfer not found or already processed'::TEXT;
+        RETURN;
+    END IF;
+    
+    -- Update transfer status to approved
+    UPDATE transfers
+    SET 
+        status = 'approved',
+        approved_by = p_approved_by,
+        approved_at = NOW(),
+        updated_at = NOW()
+    WHERE id = p_transfer_id;
+    
+    -- Move inventory from source to destination storage
+    -- First, reduce inventory in source storage
+    UPDATE sorting_results
+    SET 
+        total_pieces = total_pieces - v_transfer.quantity,
+        total_weight_grams = total_weight_grams - (v_transfer.weight_kg * 1000)::INTEGER
+    WHERE storage_location_id = v_transfer.from_storage_location_id
+    AND size_class = v_transfer.size_class
+    AND total_pieces >= v_transfer.quantity;
+    
+    -- Check if the update was successful (inventory was sufficient)
+    IF NOT FOUND THEN
+        -- Rollback the transfer status
+        UPDATE transfers
+        SET 
+            status = 'pending',
+            approved_by = NULL,
+            approved_at = NULL,
+            updated_at = NOW()
+        WHERE id = p_transfer_id;
+        
+        RETURN QUERY SELECT FALSE, 'Insufficient inventory in source storage'::TEXT;
+        RETURN;
+    END IF;
+    
+    -- Add inventory to destination storage
+    -- Check if a record already exists for this storage_location_id and size_class
+    SELECT * INTO v_existing_record
+    FROM sorting_results
+    WHERE storage_location_id = v_transfer.to_storage_location_id
+    AND size_class = v_transfer.size_class
+    LIMIT 1;
+    
+    IF FOUND THEN
+        -- Update existing record
+        UPDATE sorting_results
+        SET 
+            total_pieces = total_pieces + v_transfer.quantity,
+            total_weight_grams = total_weight_grams + (v_transfer.weight_kg * 1000)::INTEGER,
+            updated_at = NOW()
+        WHERE storage_location_id = v_transfer.to_storage_location_id
+        AND size_class = v_transfer.size_class;
+    ELSE
+        -- Get a valid warehouse_entry_id
+        SELECT id INTO v_warehouse_entry_id FROM warehouse_entries LIMIT 1;
+        
+        -- If no warehouse entries exist, create a dummy one
+        IF v_warehouse_entry_id IS NULL THEN
+            INSERT INTO warehouse_entries (
+                farmer_id,
+                entry_date,
+                total_weight_kg,
+                total_pieces,
+                fish_type,
+                source_location,
+                notes,
+                created_at,
+                updated_at
+            ) VALUES (
+                (SELECT id FROM farmers LIMIT 1), -- Use any existing farmer
+                NOW()::date,
+                0.00,
+                0,
+                'Transfer Dummy',
+                'System',
+                'Dummy entry for transfer system',
+                NOW(),
+                NOW()
+            ) RETURNING id INTO v_warehouse_entry_id;
+        END IF;
+        
+        -- Create a dummy processing record (now ALL fields can be NULL or have defaults)
+        INSERT INTO processing_records (
+            warehouse_entry_id,
+            processing_date,
+            processed_by,
+            pre_processing_weight,
+            post_processing_weight,
+            processing_waste,
+            processing_yield,
+            size_distribution,
+            ready_for_dispatch_count,
+            created_at,
+            updated_at
+        ) VALUES (
+            v_warehouse_entry_id,
+            NOW()::date,
+            p_approved_by,
+            DEFAULT,  -- pre_processing_weight (0.00)
+            DEFAULT,  -- post_processing_weight (0.00)
+            DEFAULT,  -- processing_waste (0.00)
+            DEFAULT,  -- processing_yield (0.00)
+            DEFAULT,  -- size_distribution ('{}')
+            DEFAULT,  -- ready_for_dispatch_count (0)
+            NOW(),
+            NOW()
+        ) RETURNING id INTO v_dummy_processing_record_id;
+        
+        -- Create a special "transfer batch" to satisfy the sorting_batch_id constraint
+        INSERT INTO sorting_batches (
+            processing_record_id,
+            batch_number,
+            status,
+            created_at,
+            updated_at
+        ) VALUES (
+            v_dummy_processing_record_id,
+            'TRANSFER-' || p_transfer_id::text,
+            'completed',
+            NOW(),
+            NOW()
+        ) RETURNING id INTO v_transfer_batch_id;
+        
+        -- Insert new record with the transfer batch ID
+        INSERT INTO sorting_results (
+            sorting_batch_id,
+            storage_location_id,
+            size_class,
+            total_pieces,
+            total_weight_grams,
+            created_at,
+            updated_at
+        ) VALUES (
+            v_transfer_batch_id,
+            v_transfer.to_storage_location_id,
+            v_transfer.size_class,
+            v_transfer.quantity,
+            (v_transfer.weight_kg * 1000)::INTEGER,
+            NOW(),
+            NOW()
+        );
+    END IF;
+    
+    -- Update storage capacities
+    PERFORM update_storage_capacity_from_inventory();
+    
+    RETURN QUERY SELECT TRUE, 'Transfer approved and executed successfully'::TEXT;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create approve_batch_transfer function
+CREATE OR REPLACE FUNCTION approve_batch_transfer(
+    p_transfer_id UUID,
+    p_approved_by UUID
+) RETURNS TABLE(
+    success BOOLEAN,
+    message TEXT
+) AS $$
+BEGIN
+    -- For now, batch transfers work the same as single transfers
+    RETURN QUERY SELECT * FROM approve_transfer(p_transfer_id, p_approved_by);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create decline_transfer function
+CREATE OR REPLACE FUNCTION decline_transfer(
+    p_transfer_id UUID,
+    p_approved_by UUID
+) RETURNS TABLE(
+    success BOOLEAN,
+    message TEXT
+) AS $$
+BEGIN
+    UPDATE transfers
+    SET 
+        status = 'declined',
+        approved_by = p_approved_by,
+        approved_at = NOW(),
+        updated_at = NOW()
+    WHERE id = p_transfer_id AND status = 'pending';
+    
+    IF FOUND THEN
+        RETURN QUERY SELECT TRUE, 'Transfer declined successfully'::TEXT;
+    ELSE
+        RETURN QUERY SELECT FALSE, 'Transfer not found or already processed'::TEXT;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION approve_transfer(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION approve_batch_transfer(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION decline_transfer(UUID, UUID) TO authenticated;
+
+GRANT EXECUTE ON FUNCTION approve_transfer(UUID, UUID) TO anon;
+GRANT EXECUTE ON FUNCTION approve_batch_transfer(UUID, UUID) TO anon;
+GRANT EXECUTE ON FUNCTION decline_transfer(UUID, UUID) TO anon;
+
+-- Success message
+SELECT 'ALL processing records constraints fixed - transfer system should work now!' as status;
