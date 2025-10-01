@@ -794,6 +794,9 @@ export default function OrderManagement({ onNavigate }: OrderManagementProps) {
         // Deduct inventory immediately when order is confirmed
         await deductInventoryOnOrderConfirmation(orderToConfirm);
 
+        // Update storage capacity after inventory deduction
+        await updateStorageCapacityAfterOrder();
+
         // Automatically create dispatch record with correct values
         await createAutomaticDispatchRecord(orderToConfirm);
 
@@ -989,6 +992,26 @@ export default function OrderManagement({ onNavigate }: OrderManagementProps) {
     } catch (error) {
       console.error('Error deducting inventory on order confirmation:', error);
       throw error;
+    }
+  };
+
+  // Update storage capacity after order confirmation
+  const updateStorageCapacityAfterOrder = async () => {
+    try {
+      console.log('🔄 Updating storage capacity after order confirmation...');
+      
+      // Call the database function to update storage capacity
+      const { error } = await supabase.rpc('update_storage_capacity_from_inventory');
+      
+      if (error) {
+        console.warn('⚠️ Could not update storage capacity:', error);
+        // Don't throw error, just log it as this is not critical for order processing
+      } else {
+        console.log('✅ Storage capacity updated successfully');
+      }
+    } catch (error) {
+      console.warn('⚠️ Error updating storage capacity:', error);
+      // Don't throw error, just log it as this is not critical for order processing
     }
   };
 

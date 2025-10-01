@@ -402,80 +402,51 @@ class InventoryService {
   }
 
   /**
-   * Get oldest batch that is yet to be removed (FIFO) - using same data as inventory component
+   * Get oldest batch that is yet to be ordered (FIFO) - shows only batches available for ordering
    */
   async getOldestBatchForRemoval(): Promise<any[]> {
     try {
-      console.log('🔍 Getting oldest batch for removal using inventory data...');
+      console.log('🔍 Getting oldest batches available for ordering (FIFO)...');
       
-      // Use the same data source as the inventory component
-      const inventoryData = await this.getInventoryByStorage();
-      console.log('📦 Inventory data for FIFO:', inventoryData?.length || 0);
+      // Use the new database function that shows only batches yet to be ordered
+      const { data: availableBatches, error } = await withRetry(async () => {
+        return await supabase.rpc('get_batches_available_for_order');
+      });
 
-      if (!inventoryData || inventoryData.length === 0) {
-        console.log('📦 No inventory data found');
+      if (error) {
+        console.warn('⚠️ Error fetching batches available for order:', error);
+        // Fallback to the old method if the new function is not available
+        return await this.getOldestBatchFallback();
+      }
+
+      if (!availableBatches || availableBatches.length === 0) {
+        console.log('📦 No batches available for ordering');
         return [];
       }
 
-      // Process inventory data to get oldest batches (focus on weights only)
-      const batchMap = new Map();
-      
-      inventoryData.forEach((item: any) => {
-        if (item.size !== null && item.total_weight_kg > 0 && item.contributing_batches) {
-          // Process each contributing batch
-          item.contributing_batches.forEach((batch: any) => {
-            const batchId = batch.batch_id;
-            const batchNumber = batch.batch_number || `BATCH-${batchId?.substring(0, 8)}`;
-            
-            if (!batchMap.has(batchId)) {
-              // Calculate days in storage from batch created date
-              const createdDate = batch.created_at;
-              const daysInStorage = createdDate 
-                ? Math.floor((new Date().getTime() - new Date(createdDate).getTime()) / (1000 * 60 * 60 * 24))
-                : 0;
+      // Process the results to match the expected format
+      const processedBatches = availableBatches.map(batch => ({
+        batch_id: batch.batch_id,
+        batch_number: batch.batch_number,
+        size_class: batch.size_class,
+        total_pieces: batch.total_pieces,
+        total_weight_kg: batch.total_weight_kg,
+        storage_location_name: batch.storage_location_name,
+        created_at: batch.created_at,
+        processing_date: batch.processing_date,
+        farmer_name: batch.farmer_name,
+        days_in_storage: batch.days_in_storage,
+        batch_status: 'completed',
+        available_for_order: true,
+        priority_score: batch.priority_score
+      }));
 
-              batchMap.set(batchId, {
-                batch_id: batchId,
-                batch_number: batchNumber,
-                size_class: item.size,
-                total_weight_kg: 0, // Will sum up weights for this batch
-                storage_location_name: item.storage_location_name,
-                created_at: createdDate,
-                processing_date: batch.processing_date,
-                farmer_name: batch.farmer_name || 'Unknown Farmer',
-                days_in_storage: daysInStorage,
-                batch_status: batch.status || 'unknown'
-              });
-            }
-            
-            // Add weight for this size in this batch
-            const existingBatch = batchMap.get(batchId);
-            existingBatch.total_weight_kg += item.total_weight_kg;
-          });
-        }
-      });
-
-      // Convert to array and sort by oldest first (FIFO)
-      const oldestBatches = Array.from(batchMap.values())
-        .filter(batch => batch.total_weight_kg > 0)
-        .sort((a, b) => {
-          const dateA = new Date(a.created_at || 0).getTime();
-          const dateB = new Date(b.created_at || 0).getTime();
-          if (dateA !== dateB) return dateA - dateB;
-          return (a.batch_id || '').localeCompare(b.batch_id || '');
-        })
-        .slice(0, 10);
-
-      console.log('📦 FIFO batches from inventory data:', oldestBatches.length);
-      if (oldestBatches.length > 0) {
-        console.log('📦 First FIFO batch:', oldestBatches[0]);
+      console.log('📦 FIFO batches available for ordering:', processedBatches.length);
+      if (processedBatches.length > 0) {
+        console.log('📦 First available batch:', processedBatches[0]);
       }
       
-      // Debug Size 9 specifically in FIFO
-      const size9Batches = oldestBatches.filter(batch => batch.size_class === 9);
-      console.log('🔍 Size 9 batches in FIFO:', size9Batches);
-      
-      return oldestBatches;
+      return processedBatches.slice(0, 10);
     } catch (error) {
       console.error('❌ Error in getOldestBatchForRemoval:', error);
       return [];
@@ -485,74 +456,48 @@ class InventoryService {
   /**
    * Fallback method to get oldest batches using a simpler approach
    */
+  
+  /**
+   * Fallback method to get oldest batches using a simpler approach (FIXED)
+   */
   async getOldestBatchFallback(): Promise<any[]> {
     try {
-      console.log('🔍 Using fallback method for oldest batches...');
+      console.log('🔍 Using fixed fallback method for oldest batches...');
       
-      // Simple query to get sorting results with basic batch info
-      const { data: sortingResults, error } = await supabase
-        .from('sorting_results')
-        .select(`
-          id,
-          size_class,
-          total_pieces,
-          total_weight_grams,
-          storage_location_id,
-          sorting_batch_id,
-          created_at,
-          storage_location:storage_locations(name)
-        `)
-        .not('storage_location_id', 'is', null)
-        .gt('total_weight_grams', 0)
-        .gt('total_pieces', 0)
-        .order('created_at', { ascending: true })
-        .limit(20);
+      // Use the fixed database function
+      const { data: oldestBatches, error } = await withRetry(async () => {
+        return await supabase.rpc('get_oldest_batches_fixed');
+      });
 
       if (error) {
-        console.warn('⚠️ Error in fallback query:', error);
+        console.warn('⚠️ Error in fixed fallback query:', error);
         return [];
       }
 
-      if (!sortingResults || sortingResults.length === 0) {
-        console.log('📦 No results from fallback query either');
+      if (!oldestBatches || oldestBatches.length === 0) {
+        console.log('📦 No results from fixed fallback query');
         return [];
       }
 
-      // Process the fallback data
-      const fallbackBatches = sortingResults.map((result: any) => {
-        const createdDate = result.created_at;
-        const daysInStorage = createdDate 
-          ? Math.floor((new Date().getTime() - new Date(createdDate).getTime()) / (1000 * 60 * 60 * 24))
-          : 0;
+      // Process the results
+      const processedBatches = oldestBatches.map(batch => ({
+        batch_id: batch.batch_id,
+        batch_number: batch.batch_number,
+        size_class: batch.size_class,
+        total_pieces: batch.total_pieces,
+        total_weight_kg: batch.total_weight_kg,
+        storage_location_name: batch.storage_location_name,
+        created_at: batch.created_at,
+        processing_date: batch.processing_date,
+        farmer_name: batch.farmer_name,
+        days_in_storage: batch.days_in_storage,
+        batch_status: 'completed'
+      }));
 
-        return {
-          batch_id: result.sorting_batch_id || result.id,
-          batch_number: `BATCH-${(result.sorting_batch_id || result.id)?.substring(0, 8)}`,
-          size_class: result.size_class,
-          total_pieces: result.total_pieces,
-          total_weight_kg: result.total_weight_grams / 1000,
-          storage_location_name: result.storage_location?.name || 'Unknown Storage',
-          created_at: createdDate,
-          processing_date: null,
-          farmer_name: 'Unknown Farmer',
-          days_in_storage: daysInStorage,
-          batch_status: 'unknown'
-        };
-      });
-
-      // Group by batch_id to avoid duplicates
-      const uniqueBatches = new Map();
-      fallbackBatches.forEach(batch => {
-        if (batch.batch_id && !uniqueBatches.has(batch.batch_id)) {
-          uniqueBatches.set(batch.batch_id, batch);
-        }
-      });
-
-      const result = Array.from(uniqueBatches.values()).slice(0, 10);
-      console.log('📦 Fallback method found:', result.length, 'batches');
-      return result;
+      console.log('📦 Fixed fallback method found:', processedBatches.length, 'batches');
+      return processedBatches.slice(0, 10);
     } catch (error) {
-      console.error('❌ Error in fallback method:', error);
+      console.error('❌ Error in fixed fallback method:', error);
       return [];
     }
   }
@@ -560,31 +505,19 @@ class InventoryService {
   /**
    * Get detailed batch information with all sizes for a specific batch
    */
+  
+  /**
+   * Get detailed batch information with all sizes for a specific batch (FIXED)
+   */
   async getBatchDetails(batchId: string): Promise<any> {
     try {
       console.log('🔍 Getting batch details for:', batchId);
       
+      // Use the fixed database function
       const { data: batchData, error } = await withRetry(async () => {
-        return await supabase
-          .from('sorting_batches')
-          .select(`
-            id,
-            batch_number,
-            status,
-            created_at,
-            processing_record:processing_records(
-              id,
-              processing_date,
-              warehouse_entry:warehouse_entries(
-                id,
-                entry_date,
-                farmer_id,
-                farmers(name, phone, location)
-              )
-            )
-          `)
-          .eq('id', batchId)
-          .single();
+        return await supabase.rpc('get_batch_details_fixed', {
+          p_batch_id: batchId
+        });
       });
 
       if (error) {
@@ -592,39 +525,30 @@ class InventoryService {
         return null;
       }
 
-      // Get all sizes for this batch
-      const { data: sizesData, error: sizesError } = await withRetry(async () => {
-        return await supabase
-          .from('sorting_results')
-          .select(`
-            id,
-            size_class,
-            total_pieces,
-            total_weight_grams,
-            storage_location_id,
-            storage_location:storage_locations(
-              id,
-              name
-            )
-          `)
-          .eq('sorting_batch_id', batchId)
-          .gt('total_pieces', 0)
-          .order('size_class');
-      });
-
-      if (sizesError) {
-        console.warn('⚠️ Error fetching batch sizes:', sizesError);
+      if (!batchData || batchData.length === 0) {
+        console.warn('⚠️ No batch details found for:', batchId);
         return null;
       }
 
+      const batchInfo = batchData[0];
       const result = {
-        batch: batchData,
-        sizes: (sizesData || []).map((size: any) => ({
-          size_class: size.size_class,
-          total_pieces: size.total_pieces,
-          total_weight_kg: size.total_weight_grams / 1000,
-          storage_location_name: size.storage_location?.name
-        }))
+        batch: {
+          id: batchInfo.batch_id,
+          batch_number: batchInfo.batch_number,
+          status: batchInfo.status,
+          created_at: batchInfo.created_at,
+          processing_record: {
+            processing_date: batchInfo.processing_date,
+            warehouse_entry: {
+              farmers: {
+                name: batchInfo.farmer_name,
+                phone: batchInfo.farmer_phone,
+                location: batchInfo.farmer_location
+              }
+            }
+          }
+        },
+        sizes: batchInfo.sizes || []
       };
 
       console.log('📦 Batch details processed:', result);
