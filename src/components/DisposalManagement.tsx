@@ -89,6 +89,13 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     loadData();
   }, []);
 
+  // Auto-reload inventory when filter criteria change
+  useEffect(() => {
+    if (createDialogOpen) {
+      loadInventoryForDisposal();
+    }
+  }, [daysOld, includeStorageIssues, fromDate, toDate, createDialogOpen]);
+
   // Auto-set date range when daysOld changes (only for certain thresholds)
   useEffect(() => {
     if (daysOld > 0 && daysOld <= 7) {
@@ -207,44 +214,64 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
 
   const loadInventoryForDisposal = async () => {
     try {
-      console.log('🔍 [DisposalManagement] Loading inventory for disposal with threshold:', daysOld);
+      console.log('🔍 [DisposalManagement] Loading inventory for disposal with improved filtering...');
+      console.log('📊 [DisposalManagement] Filter criteria:', { 
+        daysOld, 
+        includeStorageIssues, 
+        fromDate, 
+        toDate 
+      });
       
-      // Use the disposal service to get inventory
-      const data = await disposalService.getInventoryForDisposal(daysOld, true);
+      // Use the disposal service to get inventory with current criteria
+      const data = await disposalService.getInventoryForDisposal(daysOld, includeStorageIssues);
       
-      console.log('📊 [DisposalManagement] Raw data from service:', data);
+      console.log('📊 [DisposalManagement] Raw data from service:', data?.length || 0, 'items');
       
       let filteredData = data || [];
       
-      // Apply date filtering if dates are provided
+      // Apply additional date filtering if dates are provided
       if (fromDate || toDate) {
-        console.log('🔍 [DisposalManagement] Applying date filtering:', { fromDate, toDate });
+        console.log('🔍 [DisposalManagement] Applying additional date filtering:', { fromDate, toDate });
         console.log('📊 [DisposalManagement] Items before date filtering:', filteredData.length);
         
         filteredData = filteredData.filter((item: InventoryForDisposal) => {
+          if (!item.processing_date) {
+            console.log('❌ [DisposalManagement] Item has no processing date:', item.sorting_result_id);
+            return false;
+          }
+          
           const processingDate = new Date(item.processing_date);
           const from = fromDate ? new Date(fromDate) : null;
           const to = toDate ? new Date(toDate) : null;
           
-          console.log('🔍 [DisposalManagement] Checking item date:', {
+          // Check if date is valid
+          if (isNaN(processingDate.getTime())) {
+            console.log('❌ [DisposalManagement] Invalid processing date:', item.processing_date);
+            return false;
+          }
+          
+          const passesFrom = !from || processingDate >= from;
+          const passesTo = !to || processingDate <= to;
+          
+          console.log('🔍 [DisposalManagement] Date check:', {
+            itemId: item.sorting_result_id,
             processingDate: item.processing_date,
             processingDateObj: processingDate,
             from,
             to,
-            passesFrom: !from || processingDate >= from,
-            passesTo: !to || processingDate <= to
+            passesFrom,
+            passesTo,
+            passes: passesFrom && passesTo
           });
           
-          if (from && processingDate < from) return false;
-          if (to && processingDate > to) return false;
-          return true;
+          return passesFrom && passesTo;
         });
         
         console.log('📊 [DisposalManagement] Items after date filtering:', filteredData.length);
       }
       
-      console.log('📊 [DisposalManagement] Filtered data:', filteredData);
-          setInventoryForDisposal(filteredData);
+      console.log('📊 [DisposalManagement] Final filtered data:', filteredData.length, 'items');
+      setInventoryForDisposal(filteredData);
     } catch (error) {
       console.error("❌ [DisposalManagement] Error loading inventory for disposal:", error);
       setInventoryForDisposal([]);
