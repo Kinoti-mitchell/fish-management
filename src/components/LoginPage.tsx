@@ -192,7 +192,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
 
                 {error && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    {console.log('🔍 [LoginPage] Rendering error message:', error)}
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
                         <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -238,6 +237,19 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
                   ) : (
                     "Sign In"
                   )}
+                </Button>
+
+                {/* Test button to verify error display works */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    console.log('🔍 [LoginPage] Test button clicked');
+                    setError('Test error message - this should appear!');
+                  }}
+                >
+                  Test Error Display
                 </Button>
 
               </form>
