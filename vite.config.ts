@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
   ],
-  base: '/',
+  base: '/fish-management/',
   build: {
     target: 'es2015',
     outDir: 'build',
