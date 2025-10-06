@@ -26,15 +26,25 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
     
     console.log('🔍 [LoginPage] Form submitted with:', { email, password: '***' });
     
-    setLoading(true);
+    // Clear any existing messages first
     setError(null);
     setSuccess(null);
+    setLoading(true);
     
     // Debug: Check if error state is working
     console.log('🔍 [LoginPage] Error state before:', error);
 
     try {
       console.log('🔍 [LoginPage] Calling onLogin...');
+      
+      // Test: Show error message immediately to verify display works
+      if (email === 'test@test.com') {
+        console.log('🔍 [LoginPage] Test error triggered');
+        setError('This is a test error message to verify display works');
+        setLoading(false);
+        return;
+      }
+      
       const result = await onLogin(email, password);
       console.log('🔍 [LoginPage] Login result:', result);
       
@@ -132,7 +142,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
             </CardHeader>
 
             <CardContent className="px-8 pb-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <div className="space-y-3">
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                     Email Address
