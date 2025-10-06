@@ -12,7 +12,7 @@ import { DisposalMarquee } from "./DisposalMarquee";
 
 interface DisposalRecord {
   id: string;
-  disposal_reason: string;
+  disposal_reason: string | { name: string };
   total_weight_kg: number;
   disposal_cost: number;
   status: string;
@@ -520,7 +520,7 @@ const DisposalManagement: React.FC = () => {
                     {disposalRecords.map((record) => (
                       <tr key={record.id} className="border-b hover:bg-gray-50">
                         <td className="p-2">{new Date(record.created_at).toLocaleDateString()}</td>
-                        <td className="p-2">{record.disposal_reason}</td>
+                        <td className="p-2">{typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown'}</td>
                         <td className="p-2">{record.total_weight_kg.toFixed(2)}</td>
                         <td className="p-2">{record.disposal_cost.toFixed(2)}</td>
                         <td className="p-2">
