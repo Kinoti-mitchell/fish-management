@@ -89,12 +89,8 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
 
   const ageCategories = [
     { value: "all", label: "All Items", description: "Show all available items", days: 0 },
-    { value: "expired", label: "Expired (100+ days)", description: "Items over 100 days old", days: 1000 },
-    { value: "old_fish", label: "Old Fish (20+ days)", description: "Items older than 20 days", days: 20 },
-    { value: "date_range", label: "Date Range", description: "Items within specific date range", days: 0 },
-    { value: "before_date", label: "Before Date", description: "Items processed before specific date", days: 0 },
-    { value: "inactive_storage", label: "Storage Problems", description: "Items in inactive storage locations", days: 0 },
-    { value: "storage_issues", label: "All Storage Issues", description: "Items with any storage problems", days: 0 }
+    { value: "custom_age", label: "Custom Age", description: "Items older than specified days", days: 0 },
+    { value: "inactive_storage", label: "Inactive Storage", description: "Items in inactive storage locations", days: 0 }
   ];
 
   useEffect(() => {
@@ -122,18 +118,8 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
         setIncludeStorageIssues(true);
         setFromDate("");
         setToDate("");
-      } else if (ageCategory === "old_fish") {
-        setDaysOld(20);
-        setIncludeStorageIssues(false);
-        setFromDate("");
-        setToDate("");
-      } else if (ageCategory === "date_range") {
-        setDaysOld(0);
-        setIncludeStorageIssues(false);
-        setFromDate("");
-        setToDate("");
-      } else if (ageCategory === "before_date") {
-        setDaysOld(0);
+      } else if (ageCategory === "custom_age") {
+        setDaysOld(customDaysOld);
         setIncludeStorageIssues(false);
         setFromDate("");
         setToDate("");
@@ -281,9 +267,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
       let maxDaysOld: number | undefined = undefined;
       let inactiveStorageOnly = false;
       
-      if (ageCategory === "old_fish") {
-        maxDaysOld = 20;
-      } else if (ageCategory === "inactive_storage") {
+      if (ageCategory === "inactive_storage") {
         inactiveStorageOnly = true;
       }
       
@@ -675,6 +659,7 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
     setFromDate("");
     setToDate("");
     setAgeCategory("all");
+    setCustomDaysOld(20);
   };
 
   const getStatusColor = (status: string) => {
@@ -833,24 +818,30 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
               
               <div className="space-y-4">
                 {/* Disposal Configuration */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 max-w-full overflow-x-hidden">
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Filter Items for Disposal</CardTitle>
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 max-w-full overflow-x-hidden">
+                  <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-blue-600" />
+                        Filter Items for Disposal
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">Select the criteria for items to dispose</p>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <Label htmlFor="ageCategory" className="text-sm font-medium">Disposal Reason *</Label>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="ageCategory" className="text-sm font-semibold text-gray-700">
+                            Disposal Reason *
+                          </Label>
                           <Select value={ageCategory} onValueChange={setAgeCategory}>
-                            <SelectTrigger className="mt-1">
+                            <SelectTrigger className="h-12 bg-white border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors">
                               <SelectValue placeholder="Select disposal reason" />
                             </SelectTrigger>
                             <SelectContent>
                               {ageCategories.map((category) => (
                                 <SelectItem key={category.value} value={category.value}>
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{category.label}</span>
+                                  <div className="flex flex-col py-1">
+                                    <span className="font-medium text-gray-800">{category.label}</span>
                                     <span className="text-xs text-gray-500">{category.description}</span>
                                   </div>
                                 </SelectItem>
@@ -859,103 +850,24 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                           </Select>
                         </div>
                         
-                        {/* Date Filter - Show for date-based reasons */}
-                        {(ageCategory === "date_range" || ageCategory === "before_date") && (
-                          <div className="grid grid-cols-1 gap-4">
-                            {ageCategory === "date_range" ? (
-                              <>
-                                <div>
-                                  <Label htmlFor="fromDate" className="text-sm font-medium">
-                                    From Date
-                                  </Label>
-                                  <Input
-                                    id="fromDate"
-                                    type="date"
-                                    value={fromDate}
-                                    onChange={(e) => {
-                                      const selectedDate = e.target.value;
-                                      const today = new Date().toISOString().split('T')[0];
-                                      
-                                      if (selectedDate > today) {
-                                        toast.error("Cannot select future dates");
-                                        return;
-                                      }
-                                      
-                                      setFromDate(selectedDate);
-                                      if (!toDate || selectedDate > toDate) {
-                                        setToDate(today);
-                                      }
-                                    }}
-                                    className="mt-1"
-                                    max={new Date().toISOString().split('T')[0]}
-                                  />
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    Start date for the range
-                                  </p>
-                                </div>
-                                
-                                <div>
-                                  <Label htmlFor="toDate" className="text-sm font-medium">
-                                    To Date
-                                  </Label>
-                                  <Input
-                                    id="toDate"
-                                    type="date"
-                                    value={toDate}
-                                    onChange={(e) => {
-                                      const selectedDate = e.target.value;
-                                      const today = new Date().toISOString().split('T')[0];
-                                      
-                                      if (selectedDate > today) {
-                                        toast.error("Cannot select future dates");
-                                        return;
-                                      }
-                                      
-                                      if (fromDate && selectedDate < fromDate) {
-                                        toast.error("To Date cannot be before From Date");
-                                        return;
-                                      }
-                                      
-                                      setToDate(selectedDate);
-                                    }}
-                                    className="mt-1"
-                                    min={fromDate || undefined}
-                                    max={new Date().toISOString().split('T')[0]}
-                                  />
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    End date for the range
-                                  </p>
-                                </div>
-                              </>
-                            ) : (
-                              <div>
-                                <Label htmlFor="beforeDate" className="text-sm font-medium">
-                                  Before Date
-                                </Label>
-                                <Input
-                                  id="beforeDate"
-                                  type="date"
-                                  value={toDate}
-                                  onChange={(e) => {
-                                    const selectedDate = e.target.value;
-                                    const today = new Date().toISOString().split('T')[0];
-                                    
-                                    if (selectedDate > today) {
-                                      toast.error("Cannot select future dates");
-                                      return;
-                                    }
-                                    
-                                    setToDate(selectedDate);
-                                    setFromDate(""); // Clear from date for "before date" filter
-                                  }}
-                                  className="mt-1"
-                                  max={new Date().toISOString().split('T')[0]}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Show items processed before this date
-                                </p>
-                              </div>
-                            )}
+                        {/* Custom Age Input - Show for custom age reason */}
+                        {ageCategory === "custom_age" && (
+                          <div className="space-y-2 p-4 bg-white rounded-lg border border-gray-200">
+                            <Label htmlFor="customDaysOld" className="text-sm font-semibold text-gray-700">
+                              Days Old Threshold
+                            </Label>
+                            <Input
+                              id="customDaysOld"
+                              type="number"
+                              value={customDaysOld}
+                              onChange={(e) => setCustomDaysOld(Number(e.target.value))}
+                              placeholder="20"
+                              className="h-10 border-2 border-gray-200 focus:border-blue-500"
+                              min="1"
+                            />
+                            <p className="text-xs text-gray-500">
+                              Show items older than this many days
+                            </p>
                           </div>
                         )}
                       </div>
@@ -964,16 +876,20 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                   </Card>
 
                   {/* Disposal Details */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Disposal Details</CardTitle>
+                  <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <Trash2 className="w-5 h-5 text-green-600" />
+                        Disposal Details
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">Configure disposal method and details</p>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <Label htmlFor="reason" className="text-sm font-medium">Disposal Reason *</Label>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="reason" className="text-sm font-semibold text-gray-700">Disposal Reason *</Label>
                           <Select value={selectedReason} onValueChange={setSelectedReason}>
-                            <SelectTrigger className="mt-1">
+                            <SelectTrigger className="h-12 bg-white border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors">
                               <SelectValue placeholder="Select reason" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1090,19 +1006,11 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                       <Badge variant="outline" className="text-xs break-words">
                         {ageCategory === "all" 
                           ? 'Showing all items' 
-                          : ageCategory === "storage_issues"
-                            ? 'Showing items with storage issues'
-                            : ageCategory === "inactive_storage"
-                              ? 'Showing items with storage problems'
-                              : ageCategory === "expired"
-                                ? 'Showing items 100+ days old'
-                                : ageCategory === "old_fish"
-                                  ? 'Showing items 20+ days old'
-                                  : ageCategory === "date_range"
-                                    ? `Showing items from ${fromDate || 'start'} to ${toDate || 'end'}`
-                                    : ageCategory === "before_date"
-                                      ? `Showing items before ${toDate || 'date'}`
-                                      : 'Showing all items'
+                          : ageCategory === "inactive_storage"
+                            ? 'Showing items in inactive storage'
+                            : ageCategory === "custom_age"
+                              ? `Showing items ${customDaysOld}+ days old`
+                              : 'Showing all items'
                         }
                       </Badge>
                     </div>
