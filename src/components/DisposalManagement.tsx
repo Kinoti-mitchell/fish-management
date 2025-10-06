@@ -6,7 +6,7 @@ import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Badge } from "./ui/badge";
-import { Trash2, Plus, Package, AlertTriangle, Calendar, Clock, MapPin, ChevronDown, ChevronRight } from "lucide-react";
+import { Trash2, Plus, Package, AlertTriangle, Calendar, Clock, MapPin, ChevronDown, ChevronRight, FileText, Download, TrendingUp, BarChart3 } from "lucide-react";
 import { disposalService } from "../services/disposalService";
 import { DisposalMarquee } from "./DisposalMarquee";
 
@@ -68,6 +68,13 @@ const DisposalManagement: React.FC = () => {
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
   const [disposalCost, setDisposalCost] = useState<number>(0);
   const [disposalNotes, setDisposalNotes] = useState<string>("");
+  
+  // Reports state
+  const [showReports, setShowReports] = useState<boolean>(false);
+  const [reportDateRange, setReportDateRange] = useState<{from: string, to: string}>({
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days ago
+    to: new Date().toISOString().split('T')[0] // today
+  });
 
   // Simplified age categories
   const ageCategories = [
@@ -211,6 +218,58 @@ const DisposalManagement: React.FC = () => {
 
   const collapseAllStorages = () => {
     setExpandedStorages(new Set());
+  };
+
+  const generateDisposalReport = () => {
+    const filteredRecords = disposalRecords.filter(record => {
+      const recordDate = new Date(record.created_at).toISOString().split('T')[0];
+      return recordDate >= reportDateRange.from && recordDate <= reportDateRange.to;
+    });
+
+    const totalWeight = filteredRecords.reduce((sum, record) => sum + (record.total_weight_kg || 0), 0);
+    const totalCost = filteredRecords.reduce((sum, record) => sum + (record.disposal_cost || 0), 0);
+    
+    // Group by disposal reason
+    const reasonGroups: { [key: string]: { count: number, weight: number, cost: number } } = {};
+    filteredRecords.forEach(record => {
+      const reason = typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown';
+      if (!reasonGroups[reason]) {
+        reasonGroups[reason] = { count: 0, weight: 0, cost: 0 };
+      }
+      reasonGroups[reason].count++;
+      reasonGroups[reason].weight += record.total_weight_kg || 0;
+      reasonGroups[reason].cost += record.disposal_cost || 0;
+    });
+
+    return {
+      totalRecords: filteredRecords.length,
+      totalWeight,
+      totalCost,
+      reasonGroups,
+      records: filteredRecords
+    };
+  };
+
+  const exportToCSV = () => {
+    const report = generateDisposalReport();
+    const csvContent = [
+      ['Date', 'Reason', 'Weight (kg)', 'Cost (KES)', 'Status'].join(','),
+      ...report.records.map(record => [
+        new Date(record.created_at).toLocaleDateString(),
+        typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown',
+        record.total_weight_kg || 0,
+        record.disposal_cost || 0,
+        record.status
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `disposal-report-${reportDateRange.from}-to-${reportDateRange.to}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -595,6 +654,209 @@ const DisposalManagement: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Reports Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+                Disposal Reports
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowReports(!showReports)}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  {showReports ? 'Hide Reports' : 'Show Reports'}
+                </Button>
+                {showReports && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={exportToCSV}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          
+          {showReports && (
+            <CardContent>
+              {/* Date Range Filter */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <Label htmlFor="reportFromDate" className="text-sm font-semibold text-gray-700">
+                    From Date
+                  </Label>
+                  <Input
+                    id="reportFromDate"
+                    type="date"
+                    value={reportDateRange.from}
+                    onChange={(e) => setReportDateRange(prev => ({ ...prev, from: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="reportToDate" className="text-sm font-semibold text-gray-700">
+                    To Date
+                  </Label>
+                  <Input
+                    id="reportToDate"
+                    type="date"
+                    value={reportDateRange.to}
+                    onChange={(e) => setReportDateRange(prev => ({ ...prev, to: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button 
+                    onClick={() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                      setReportDateRange({ from: thirtyDaysAgo, to: today });
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Last 30 Days
+                  </Button>
+                </div>
+              </div>
+
+              {/* Report Summary */}
+              {(() => {
+                const report = generateDisposalReport();
+                return (
+                  <div className="space-y-6">
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className="bg-blue-50 border-blue-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-blue-600">Total Disposals</p>
+                              <p className="text-2xl font-bold text-blue-900">{report.totalRecords}</p>
+                            </div>
+                            <Trash2 className="h-8 w-8 text-blue-400" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="bg-green-50 border-green-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-green-600">Total Weight</p>
+                              <p className="text-2xl font-bold text-green-900">{report.totalWeight.toFixed(1)} kg</p>
+                            </div>
+                            <Package className="h-8 w-8 text-green-400" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="bg-orange-50 border-orange-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-orange-600">Total Cost</p>
+                              <p className="text-2xl font-bold text-orange-900">KES {report.totalCost.toLocaleString()}</p>
+                            </div>
+                            <TrendingUp className="h-8 w-8 text-orange-400" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Disposal by Reason */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Disposal by Reason</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {Object.keys(report.reasonGroups).length === 0 ? (
+                          <p className="text-gray-500 text-center py-4">No disposals found for the selected date range</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {Object.entries(report.reasonGroups).map(([reason, data]) => (
+                              <div key={reason} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <Badge variant="outline" className="text-sm">
+                                    {data.count} records
+                                  </Badge>
+                                  <span className="font-medium text-gray-800">{reason}</span>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm text-gray-600">
+                                    {data.weight.toFixed(1)} kg • KES {data.cost.toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Recent Disposals */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Recent Disposals</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {report.records.length === 0 ? (
+                          <p className="text-gray-500 text-center py-4">No disposals found for the selected date range</p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="border-b">
+                                  <th className="text-left p-2">Date</th>
+                                  <th className="text-left p-2">Reason</th>
+                                  <th className="text-left p-2">Weight (kg)</th>
+                                  <th className="text-left p-2">Cost (KES)</th>
+                                  <th className="text-left p-2">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {report.records.slice(0, 10).map((record) => (
+                                  <tr key={record.id} className="border-b hover:bg-gray-50">
+                                    <td className="p-2">{new Date(record.created_at).toLocaleDateString()}</td>
+                                    <td className="p-2">{typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown'}</td>
+                                    <td className="p-2">{(record.total_weight_kg || 0).toFixed(1)}</td>
+                                    <td className="p-2">{(record.disposal_cost || 0).toLocaleString()}</td>
+                                    <td className="p-2">
+                                      <Badge variant={record.status === 'completed' ? 'default' : 'secondary'}>
+                                        {record.status}
+                                      </Badge>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            {report.records.length > 10 && (
+                              <p className="text-sm text-gray-500 mt-2 text-center">
+                                Showing 10 of {report.records.length} records
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          )}
+        </Card>
 
         {/* Disposal Records Table */}
         <Card>
