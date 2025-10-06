@@ -68,6 +68,7 @@ const DisposalManagement: React.FC = () => {
   const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
   const [disposalCost, setDisposalCost] = useState<number>(0);
   const [disposalNotes, setDisposalNotes] = useState<string>("");
+  const [disposalMethod, setDisposalMethod] = useState<string>("waste");
   
   // Reports state
   const [showReports, setShowReports] = useState<boolean>(false);
@@ -81,6 +82,14 @@ const DisposalManagement: React.FC = () => {
     { value: "all", label: "All Items", description: "Show all available items", days: 0 },
     { value: "custom_age", label: "Custom Age", description: "Items older than specified days", days: 0 },
     { value: "inactive_storage", label: "Inactive Storage", description: "Items in inactive storage locations", days: 0 }
+  ];
+
+  // Disposal method options
+  const disposalMethods = [
+    { value: "waste", label: "Waste Disposal", description: "Dispose as general waste" },
+    { value: "compost", label: "Compost", description: "Convert to compost for farming" },
+    { value: "donation", label: "Donation", description: "Donate to charity or food bank" },
+    { value: "return_to_farmer", label: "Return to Farmer", description: "Return to original farmer" }
   ];
 
   useEffect(() => {
@@ -162,6 +171,7 @@ const DisposalManagement: React.FC = () => {
         disposalReason,
         disposalCost,
         disposalNotes,
+        disposalMethod,
         totalWeight
       });
 
@@ -189,6 +199,7 @@ const DisposalManagement: React.FC = () => {
     setDisposalReason("");
     setDisposalCost(0);
     setDisposalNotes("");
+    setDisposalMethod("waste");
   };
 
   const toggleItemSelection = (itemId: string) => {
@@ -218,6 +229,15 @@ const DisposalManagement: React.FC = () => {
 
   const collapseAllStorages = () => {
     setExpandedStorages(new Set());
+  };
+
+  const selectAllItems = () => {
+    const allItemIds = inventoryItems.map(item => item.sorting_result_id);
+    setSelectedItems(allItemIds);
+  };
+
+  const deselectAllItems = () => {
+    setSelectedItems([]);
   };
 
   const generateDisposalReport = () => {
@@ -418,6 +438,27 @@ const DisposalManagement: React.FC = () => {
                       <CardContent className="space-y-4">
                         
                         <div className="space-y-2">
+                          <Label htmlFor="disposalMethod" className="text-sm font-semibold text-gray-700">
+                            Disposal Method *
+                          </Label>
+                          <Select value={disposalMethod} onValueChange={setDisposalMethod}>
+                            <SelectTrigger className="h-12 bg-white border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors">
+                              <SelectValue placeholder="Select disposal method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {disposalMethods.map((method) => (
+                                <SelectItem key={method.value} value={method.value}>
+                                  <div className="flex flex-col py-1">
+                                    <span className="font-medium text-gray-800">{method.label}</span>
+                                    <span className="text-xs text-gray-500">{method.description}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
                           <Label htmlFor="disposalCost" className="text-sm font-semibold text-gray-700">
                             Disposal Cost (KES)
                           </Label>
@@ -473,6 +514,11 @@ const DisposalManagement: React.FC = () => {
                           <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
                             <div className="text-sm text-gray-600">
                               Showing {inventoryItems.length} items across {new Set(inventoryItems.map(item => item.storage_location_name)).size} storage locations
+                              {selectedItems.length > 0 && (
+                                <span className="ml-2 font-semibold text-blue-600">
+                                  • {selectedItems.length} selected
+                                </span>
+                              )}
                             </div>
                             <div className="flex gap-2">
                               <Button 
@@ -490,6 +536,22 @@ const DisposalManagement: React.FC = () => {
                                 className="text-xs"
                               >
                                 Collapse All
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={selectAllItems}
+                                className="text-xs bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                              >
+                                Select All
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={deselectAllItems}
+                                className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                              >
+                                Deselect All
                               </Button>
                             </div>
                           </div>
