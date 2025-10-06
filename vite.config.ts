@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
   ],
-  base: process.env.NODE_ENV === 'production' ? '/fish-management/' : '/',
+  base: '/',
   build: {
     target: 'es2015',
     outDir: 'build',
