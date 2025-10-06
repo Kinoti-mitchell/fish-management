@@ -39,3 +39,4 @@ SELECT
 FROM inventory_entries;
 
 
+

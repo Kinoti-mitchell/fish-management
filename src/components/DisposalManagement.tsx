@@ -6,7 +6,7 @@ import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Badge } from "./ui/badge";
-import { Trash2, Plus, Package, AlertTriangle, Calendar, Clock, MapPin } from "lucide-react";
+import { Trash2, Plus, Package, AlertTriangle, Calendar, Clock, MapPin, ChevronDown, ChevronRight } from "lucide-react";
 import { disposalService } from "../services/disposalService";
 import { DisposalMarquee } from "./DisposalMarquee";
 
@@ -65,6 +65,7 @@ const DisposalManagement: React.FC = () => {
   const [customDaysOld, setCustomDaysOld] = useState<number>(1);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [disposalReason, setDisposalReason] = useState<string>("");
+  const [expandedStorages, setExpandedStorages] = useState<Set<string>>(new Set());
   const [disposalCost, setDisposalCost] = useState<number>(0);
   const [disposalNotes, setDisposalNotes] = useState<string>("");
 
@@ -168,6 +169,27 @@ const DisposalManagement: React.FC = () => {
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId]
     );
+  };
+
+  const toggleStorageExpansion = (storageName: string) => {
+    setExpandedStorages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(storageName)) {
+        newSet.delete(storageName);
+      } else {
+        newSet.add(storageName);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAllStorages = () => {
+    const allStorageNames = new Set(inventoryItems.map(item => item.storage_location_name));
+    setExpandedStorages(allStorageNames);
+  };
+
+  const collapseAllStorages = () => {
+    setExpandedStorages(new Set());
   };
 
   if (loading) {
@@ -368,8 +390,28 @@ const DisposalManagement: React.FC = () => {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                            Showing {inventoryItems.length} items across {new Set(inventoryItems.map(item => item.storage_location_name)).size} storage locations
+                          <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
+                            <div className="text-sm text-gray-600">
+                              Showing {inventoryItems.length} items across {new Set(inventoryItems.map(item => item.storage_location_name)).size} storage locations
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={expandAllStorages}
+                                className="text-xs"
+                              >
+                                Expand All
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={collapseAllStorages}
+                                className="text-xs"
+                              >
+                                Collapse All
+                              </Button>
+                            </div>
                           </div>
                           
                           {/* Group items by storage location */}
@@ -382,11 +424,21 @@ const DisposalManagement: React.FC = () => {
                               groups[location].push(item);
                               return groups;
                             }, {} as Record<string, typeof inventoryItems>)
-                          ).map(([storageName, items]) => (
+                          ).map(([storageName, items]) => {
+                            const isExpanded = expandedStorages.has(storageName);
+                            return (
                             <Card key={storageName} className="border-2 border-gray-200">
-                              <CardHeader className="pb-3">
+                              <CardHeader 
+                                className="pb-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                                onClick={() => toggleStorageExpansion(storageName)}
+                              >
                                 <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
                                   <div className="flex items-center gap-2">
+                                    {isExpanded ? (
+                                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                                    ) : (
+                                      <ChevronRight className="w-4 h-4 text-gray-500" />
+                                    )}
                                     <MapPin className="w-5 h-5 text-blue-600" />
                                     {storageName}
                                   </div>
@@ -398,6 +450,7 @@ const DisposalManagement: React.FC = () => {
                                   Total Weight: {(items.reduce((sum, item) => sum + item.total_weight_grams, 0) / 1000).toFixed(2)} kg
                                 </div>
                               </CardHeader>
+                              {isExpanded && (
                               <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-x-hidden">
                                   {items.map((item) => (
@@ -441,8 +494,10 @@ const DisposalManagement: React.FC = () => {
                                   ))}
                                 </div>
                               </CardContent>
+                              )}
                             </Card>
-                          ))}
+                            );
+                          })}
                         </div>
                     )}
                   </CardContent>
