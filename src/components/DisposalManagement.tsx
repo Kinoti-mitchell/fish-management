@@ -136,6 +136,11 @@ const DisposalManagement: React.FC = () => {
       return;
     }
 
+    if (!disposalReason.trim()) {
+      alert('Please select a disposal reason');
+      return;
+    }
+
     try {
       setCreatingDisposal(true);
       // Implementation for creating disposal
@@ -152,8 +157,8 @@ const DisposalManagement: React.FC = () => {
   };
 
   const resetForm = () => {
-    setAgeCategory("");
-    setCustomDaysOld(30);
+    setAgeCategory("all");
+    setCustomDaysOld(1);
     setSelectedItems([]);
     setDisposalReason("");
     setDisposalCost(0);
