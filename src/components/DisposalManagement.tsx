@@ -62,7 +62,7 @@ const DisposalManagement: React.FC = () => {
 
   // Form state
   const [ageCategory, setAgeCategory] = useState<string>("all");
-  const [customDaysOld, setCustomDaysOld] = useState<number>(7);
+  const [customDaysOld, setCustomDaysOld] = useState<number>(1);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [disposalReason, setDisposalReason] = useState<string>("");
   const [disposalCost, setDisposalCost] = useState<number>(0);
@@ -71,9 +71,6 @@ const DisposalManagement: React.FC = () => {
   // Simplified age categories
   const ageCategories = [
     { value: "all", label: "All Items", description: "Show all available items", days: 0 },
-    { value: "7_days", label: "7+ Days Old", description: "Items older than 7 days", days: 7 },
-    { value: "14_days", label: "14+ Days Old", description: "Items older than 14 days", days: 14 },
-    { value: "30_days", label: "30+ Days Old", description: "Items older than 30 days", days: 30 },
     { value: "custom_age", label: "Custom Age", description: "Items older than specified days", days: 0 },
     { value: "inactive_storage", label: "Inactive Storage", description: "Items in inactive storage locations", days: 0 }
   ];
@@ -113,14 +110,8 @@ const DisposalManagement: React.FC = () => {
       if (ageCategory === "all") {
         daysOld = 0; // Show all items
         includeStorageIssues = true;
-      } else if (ageCategory === "7_days") {
-        daysOld = 7;
-      } else if (ageCategory === "14_days") {
-        daysOld = 14;
-      } else if (ageCategory === "30_days") {
-        daysOld = 30;
       } else if (ageCategory === "custom_age") {
-        daysOld = customDaysOld;
+        daysOld = customDaysOld; // Use whatever number the user enters (1 to whatever)
       } else if (ageCategory === "inactive_storage") {
         daysOld = 0;
         inactiveStorageOnly = true;
