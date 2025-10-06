@@ -29,6 +29,9 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
     setLoading(true);
     setError(null);
     setSuccess(null);
+    
+    // Debug: Check if error state is working
+    console.log('🔍 [LoginPage] Error state before:', error);
 
     try {
       console.log('🔍 [LoginPage] Calling onLogin...');
@@ -37,7 +40,10 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       
       if (!result.success) {
         console.log('❌ [LoginPage] Login failed:', result.error);
-        setError(result.error || "Login failed. Please try again.");
+        const errorMessage = result.error || "Login failed. Please try again.";
+        console.log('🔍 [LoginPage] Setting error message:', errorMessage);
+        setError(errorMessage);
+        console.log('🔍 [LoginPage] Error state after setting:', error);
       } else {
         console.log('✅ [LoginPage] Login successful');
         setSuccess("Login successful! Redirecting...");
@@ -176,6 +182,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
 
                 {error && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    {console.log('🔍 [LoginPage] Rendering error message:', error)}
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
                         <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -183,7 +190,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
                         </svg>
                       </div>
                       <div className="ml-3">
-                        <p className="text-sm text-red-700">{error}</p>
+                        <p className="text-sm font-medium text-red-700">{error}</p>
                       </div>
                     </div>
                   </div>
