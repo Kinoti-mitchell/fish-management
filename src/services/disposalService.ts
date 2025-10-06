@@ -382,6 +382,99 @@ class DisposalService {
   }
 
   /**
+   * Create a new disposal record
+   */
+  async createDisposal(disposalData: {
+    selectedItems: string[];
+    disposalReason: string;
+    disposalCost: number;
+    disposalNotes: string;
+    totalWeight: number;
+  }) {
+    try {
+      console.log('🔍 [DisposalService] Creating disposal record...');
+      console.log('📊 [DisposalService] Disposal data:', disposalData);
+
+      // First, get the disposal reason ID
+      const { data: disposalReason, error: reasonError } = await supabase
+        .from('disposal_reasons')
+        .select('id')
+        .eq('name', disposalData.disposalReason)
+        .single();
+
+      if (reasonError) {
+        console.error('❌ [DisposalService] Error finding disposal reason:', reasonError);
+        throw new Error(`Disposal reason "${disposalData.disposalReason}" not found`);
+      }
+
+      // Create the disposal record
+      const { data: disposalRecord, error: disposalError } = await supabase
+        .from('disposal_records')
+        .insert({
+          disposal_reason_id: disposalReason.id,
+          total_weight_kg: disposalData.totalWeight,
+          disposal_cost: disposalData.disposalCost,
+          notes: disposalData.disposalNotes,
+          status: 'completed',
+          disposal_date: new Date().toISOString().split('T')[0],
+          created_by: 'system' // You might want to get this from auth context
+        })
+        .select()
+        .single();
+
+      if (disposalError) {
+        console.error('❌ [DisposalService] Error creating disposal record:', disposalError);
+        throw disposalError;
+      }
+
+      console.log('✅ [DisposalService] Disposal record created:', disposalRecord.id);
+
+      // Create disposal items for each selected item
+      const disposalItems = disposalData.selectedItems.map(itemId => ({
+        disposal_record_id: disposalRecord.id,
+        sorting_result_id: itemId
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('disposal_items')
+        .insert(disposalItems);
+
+      if (itemsError) {
+        console.error('❌ [DisposalService] Error creating disposal items:', itemsError);
+        throw itemsError;
+      }
+
+      console.log('✅ [DisposalService] Disposal items created:', disposalItems.length);
+
+      // Update sorting results status to 'disposed'
+      const { error: updateError } = await supabase
+        .from('sorting_results')
+        .update({ status: 'disposed' })
+        .in('id', disposalData.selectedItems);
+
+      if (updateError) {
+        console.error('❌ [DisposalService] Error updating sorting results:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ [DisposalService] Sorting results updated to disposed status');
+
+      return {
+        success: true,
+        disposalRecord,
+        message: `Successfully disposed ${disposalData.selectedItems.length} items`
+      };
+
+    } catch (error) {
+      console.error('❌ [DisposalService] Error creating disposal:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  /**
    * Fallback method to get inventory for disposal
    */
   private async getInventoryForDisposalFallback(daysOld = 30) {

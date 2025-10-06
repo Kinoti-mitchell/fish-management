@@ -138,17 +138,38 @@ const DisposalManagement: React.FC = () => {
       return;
     }
 
-
     try {
       setCreatingDisposal(true);
-      // Implementation for creating disposal
-      console.log('Creating disposal with items:', selectedItems);
-      // Reset form
-      resetForm();
-      setCreateDialogOpen(false);
-      await loadDisposalData();
+      
+      // Calculate total weight of selected items
+      const selectedItemsData = inventoryItems.filter(item => 
+        selectedItems.includes(item.sorting_result_id)
+      );
+      const totalWeight = selectedItemsData.reduce((sum, item) => 
+        sum + (item.total_weight_grams / 1000), 0
+      );
+
+      // Create disposal record
+      const result = await disposalService.createDisposal({
+        selectedItems,
+        disposalReason,
+        disposalCost,
+        disposalNotes,
+        totalWeight
+      });
+
+      if (result.success) {
+        alert(`✅ ${result.message}`);
+        // Reset form
+        resetForm();
+        setCreateDialogOpen(false);
+        await loadDisposalData();
+      } else {
+        alert(`❌ Error creating disposal: ${result.error}`);
+      }
     } catch (error) {
       console.error('Error creating disposal:', error);
+      alert('❌ An error occurred while creating the disposal record');
     } finally {
       setCreatingDisposal(false);
     }
