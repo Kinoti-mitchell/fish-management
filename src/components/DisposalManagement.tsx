@@ -77,7 +77,7 @@ const DisposalManagement: React.FC = () => {
 
   useEffect(() => {
     loadDisposalData();
-    loadInventoryForDisposal(); // Load inventory immediately
+    loadInventoryForDisposal(); // Load inventory immediately - cache bust
   }, []);
 
   useEffect(() => {
