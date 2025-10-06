@@ -137,13 +137,31 @@ class DisposalService {
         .from('disposal_records')
         .select(`
           *,
-          disposal_reason:disposal_reasons(name)
+          disposal_reason:disposal_reasons(name),
+          disposal_items(
+            size_class,
+            weight_grams,
+            batch_number,
+            sorting_result:sorting_results(
+              sorting_batch:sorting_batches(batch_number)
+            )
+          )
         `)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform the data to include batch_numbers and size_classes arrays
+      const transformedData = (data || []).map(record => ({
+        ...record,
+        batch_numbers: record.disposal_items?.map((item: any) => 
+          item.batch_number || item.sorting_result?.sorting_batch?.batch_number || 'Unknown'
+        ).filter((batch: string, index: number, arr: string[]) => arr.indexOf(batch) === index) || [],
+        size_classes: record.disposal_items?.map((item: any) => item.size_class).filter((size: number, index: number, arr: number[]) => arr.indexOf(size) === index) || []
+      }));
+      
+      return transformedData;
     } catch (error) {
       console.error('Error fetching disposal records:', error);
       return [];
@@ -436,7 +454,8 @@ class DisposalService {
         status: 'completed',
         disposal_date: new Date().toISOString().split('T')[0],
         disposal_method: disposalData.disposalMethod, // Use disposal method from UI
-        created_by: 'system' // Track who created the disposal record
+        created_by: 'system', // Track who created the disposal record
+        approved_by: 'system' // Track who approved the disposal record
       };
 
       console.log('🔍 [DisposalService] Disposal record data:', disposalRecordData);
@@ -455,10 +474,24 @@ class DisposalService {
 
       console.log('✅ [DisposalService] Disposal record created:', disposalRecord.id);
 
-      // Create disposal items for each selected item
-      const disposalItems = disposalData.selectedItems.map(itemId => ({
+      // Get the sorting results to get size_class information
+      const { data: sortingResults, error: sortingError } = await supabase
+        .from('sorting_results')
+        .select('id, size_class, total_weight_grams, sorting_batch:sorting_batches(batch_number)')
+        .in('id', disposalData.selectedItems);
+
+      if (sortingError) {
+        console.error('❌ [DisposalService] Error fetching sorting results:', sortingError);
+        throw sortingError;
+      }
+
+      // Create disposal items for each selected item with size_class
+      const disposalItems = sortingResults.map(result => ({
         disposal_record_id: disposalRecord.id,
-        sorting_result_id: itemId
+        sorting_result_id: result.id,
+        size_class: result.size_class,
+        weight_grams: result.total_weight_grams,
+        batch_number: result.sorting_batch?.batch_number || 'Unknown'
       }));
 
       const { error: itemsError } = await supabase

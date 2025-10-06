@@ -19,6 +19,11 @@ interface DisposalRecord {
   created_at: string;
   disposal_date?: string;
   notes?: string;
+  created_by?: string;
+  approved_by?: string;
+  batch_numbers?: string[];
+  size_classes?: number[];
+  disposal_method?: string;
 }
 
 interface DisposalStats {
@@ -273,14 +278,24 @@ const DisposalManagement: React.FC = () => {
   const exportToCSV = () => {
     const report = generateDisposalReport();
     const csvContent = [
-      ['Date', 'Reason', 'Weight (kg)', 'Cost (KES)', 'Status'].join(','),
-      ...report.records.map(record => [
-        new Date(record.created_at).toLocaleDateString(),
+      ['Date', 'Time', 'Batch Numbers', 'Size Classes', 'Disposal Reason', 'Disposal Method', 'Weight (kg)', 'Cost (KES)', 'Created By', 'Approved By', 'Status', 'Notes'].join(','),
+      ...report.records.map(record => {
+        const date = new Date(record.created_at);
+        return [
+          date.toLocaleDateString(),
+          date.toLocaleTimeString(),
+          record.batch_numbers?.join('; ') || 'N/A',
+          record.size_classes?.join('; ') || 'N/A',
         typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown',
+          record.disposal_method || 'N/A',
         record.total_weight_kg || 0,
         record.disposal_cost || 0,
-        record.status
-      ].join(','))
+          record.created_by || 'N/A',
+          record.approved_by || 'N/A',
+          record.status,
+          record.notes || 'N/A'
+        ].map(field => `"${field}"`).join(',');
+      })
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -878,30 +893,88 @@ const DisposalManagement: React.FC = () => {
                           <p className="text-gray-500 text-center py-4">No disposals found for the selected date range</p>
                         ) : (
                           <div className="overflow-x-auto">
-                            <table className="w-full">
+                            <table className="w-full text-sm">
                               <thead>
-                                <tr className="border-b">
-                                  <th className="text-left p-2">Date</th>
-                                  <th className="text-left p-2">Reason</th>
-                                  <th className="text-left p-2">Weight (kg)</th>
-                                  <th className="text-left p-2">Cost (KES)</th>
-                                  <th className="text-left p-2">Status</th>
+                                <tr className="border-b bg-gray-50">
+                                  <th className="text-left p-2 font-medium">Date & Time</th>
+                                  <th className="text-left p-2 font-medium">Batch Numbers</th>
+                                  <th className="text-left p-2 font-medium">Size Classes</th>
+                                  <th className="text-left p-2 font-medium">Reason</th>
+                                  <th className="text-left p-2 font-medium">Method</th>
+                                  <th className="text-left p-2 font-medium">Weight (kg)</th>
+                                  <th className="text-left p-2 font-medium">Cost (KES)</th>
+                                  <th className="text-left p-2 font-medium">Created By</th>
+                                  <th className="text-left p-2 font-medium">Approved By</th>
+                                  <th className="text-left p-2 font-medium">Status</th>
+                                  <th className="text-left p-2 font-medium">Notes</th>
                                 </tr>
                               </thead>
                               <tbody>
-                                {report.records.slice(0, 10).map((record) => (
+                                {report.records.slice(0, 10).map((record) => {
+                                  const date = new Date(record.created_at);
+                                  return (
                                   <tr key={record.id} className="border-b hover:bg-gray-50">
-                                    <td className="p-2">{new Date(record.created_at).toLocaleDateString()}</td>
-                                    <td className="p-2">{typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown'}</td>
-                                    <td className="p-2">{(record.total_weight_kg || 0).toFixed(1)}</td>
-                                    <td className="p-2">{(record.disposal_cost || 0).toLocaleString()}</td>
                                     <td className="p-2">
-                                      <Badge variant={record.status === 'completed' ? 'default' : 'secondary'}>
+                                        <div className="text-xs">
+                                          <div>{date.toLocaleDateString()}</div>
+                                          <div className="text-gray-500">{date.toLocaleTimeString()}</div>
+                                        </div>
+                                      </td>
+                                      <td className="p-2">
+                                        <div className="text-xs">
+                                          {record.batch_numbers?.length ? (
+                                            record.batch_numbers.map((batch, idx) => (
+                                              <Badge key={idx} variant="outline" className="text-xs mr-1 mb-1">
+                                                {batch}
+                                              </Badge>
+                                            ))
+                                          ) : (
+                                            <span className="text-gray-400">N/A</span>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td className="p-2">
+                                        <div className="text-xs">
+                                          {record.size_classes?.length ? (
+                                            record.size_classes.map((size, idx) => (
+                                              <Badge key={idx} variant="secondary" className="text-xs mr-1 mb-1">
+                                                Size {size}
+                                              </Badge>
+                                            ))
+                                          ) : (
+                                            <span className="text-gray-400">N/A</span>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td className="p-2 text-xs">
+                                        {typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown'}
+                                      </td>
+                                      <td className="p-2 text-xs">
+                                        {record.disposal_method || 'N/A'}
+                                      </td>
+                                      <td className="p-2 text-xs font-medium">
+                                        {(record.total_weight_kg || 0).toFixed(1)}
+                                      </td>
+                                      <td className="p-2 text-xs font-medium">
+                                        {(record.disposal_cost || 0).toLocaleString()}
+                                      </td>
+                                      <td className="p-2 text-xs">
+                                        {record.created_by || 'N/A'}
+                                      </td>
+                                      <td className="p-2 text-xs">
+                                        {record.approved_by || 'N/A'}
+                                      </td>
+                                      <td className="p-2">
+                                        <Badge variant={record.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                                         {record.status}
                                       </Badge>
                                     </td>
+                                      <td className="p-2 text-xs max-w-32 truncate" title={record.notes || ''}>
+                                        {record.notes || 'N/A'}
+                                      </td>
                                   </tr>
-                                ))}
+                                  );
+                                })}
                               </tbody>
                             </table>
                             {report.records.length > 10 && (
@@ -933,30 +1006,88 @@ const DisposalManagement: React.FC = () => {
               </div>
             ) : (
           <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Date</th>
-                      <th className="text-left p-2">Reason</th>
-                      <th className="text-left p-2">Weight (kg)</th>
-                      <th className="text-left p-2">Cost (KES)</th>
-                      <th className="text-left p-2">Status</th>
+                    <tr className="border-b bg-gray-50">
+                      <th className="text-left p-2 font-medium">Date & Time</th>
+                      <th className="text-left p-2 font-medium">Batch Numbers</th>
+                      <th className="text-left p-2 font-medium">Size Classes</th>
+                      <th className="text-left p-2 font-medium">Reason</th>
+                      <th className="text-left p-2 font-medium">Method</th>
+                      <th className="text-left p-2 font-medium">Weight (kg)</th>
+                      <th className="text-left p-2 font-medium">Cost (KES)</th>
+                      <th className="text-left p-2 font-medium">Created By</th>
+                      <th className="text-left p-2 font-medium">Approved By</th>
+                      <th className="text-left p-2 font-medium">Status</th>
+                      <th className="text-left p-2 font-medium">Notes</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {disposalRecords.map((record) => (
+                    {disposalRecords.map((record) => {
+                      const date = new Date(record.created_at);
+                      return (
                       <tr key={record.id} className="border-b hover:bg-gray-50">
-                        <td className="p-2">{new Date(record.created_at).toLocaleDateString()}</td>
-                        <td className="p-2">{typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown'}</td>
-                        <td className="p-2">{record.total_weight_kg.toFixed(2)}</td>
-                        <td className="p-2">{record.disposal_cost.toFixed(2)}</td>
                         <td className="p-2">
-                          <Badge variant={record.status === 'completed' ? 'default' : 'secondary'}>
+                            <div className="text-xs">
+                              <div>{date.toLocaleDateString()}</div>
+                              <div className="text-gray-500">{date.toLocaleTimeString()}</div>
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div className="text-xs">
+                              {record.batch_numbers?.length ? (
+                                record.batch_numbers.map((batch, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs mr-1 mb-1">
+                                    {batch}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-gray-400">N/A</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div className="text-xs">
+                              {record.size_classes?.length ? (
+                                record.size_classes.map((size, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs mr-1 mb-1">
+                                    Size {size}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-gray-400">N/A</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-2 text-xs">
+                            {typeof record.disposal_reason === 'object' ? record.disposal_reason?.name || 'Unknown' : record.disposal_reason || 'Unknown'}
+                          </td>
+                          <td className="p-2 text-xs">
+                            {record.disposal_method || 'N/A'}
+                          </td>
+                          <td className="p-2 text-xs font-medium">
+                            {record.total_weight_kg.toFixed(2)}
+                          </td>
+                          <td className="p-2 text-xs font-medium">
+                            {record.disposal_cost.toFixed(2)}
+                          </td>
+                          <td className="p-2 text-xs">
+                            {record.created_by || 'N/A'}
+                          </td>
+                          <td className="p-2 text-xs">
+                            {record.approved_by || 'N/A'}
+                          </td>
+                          <td className="p-2">
+                            <Badge variant={record.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                         {record.status}
                       </Badge>
                         </td>
+                          <td className="p-2 text-xs max-w-32 truncate" title={record.notes || ''}>
+                            {record.notes || 'N/A'}
+                          </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
             </div>
