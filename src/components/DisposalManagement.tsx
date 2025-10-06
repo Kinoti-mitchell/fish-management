@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Badge } from "./ui/badge";
 import { Trash2, Plus, Package, AlertTriangle, Calendar, Clock, MapPin } from "lucide-react";
 import { disposalService } from "../services/disposalService";
@@ -186,24 +186,22 @@ export const DisposalManagement: React.FC = () => {
             <p className="text-gray-600">Manage fish disposal and waste handling</p>
           </div>
           
-          <DialogTrigger asChild>
-            <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Disposal
-            </Button>
-          </DialogTrigger>
+          <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Disposal
+          </Button>
         </div>
         
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold">Create New Disposal Record</DialogTitle>
-              <DialogDescription>
-                Configure disposal criteria and select items for disposal
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4">
+            <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">Create New Disposal Record</DialogTitle>
+                <DialogDescription>
+                  Configure disposal criteria and select items for disposal
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
               {/* First Step - Select Disposal Reason */}
               <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 max-w-md mx-auto">
                 <CardHeader className="pb-4">
@@ -212,7 +210,7 @@ export const DisposalManagement: React.FC = () => {
                     Select Disposal Reason
                   </CardTitle>
                   <p className="text-sm text-gray-600">Choose why you want to dispose items</p>
-                </CardHeader>
+                    </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     <Label htmlFor="ageCategory" className="text-sm font-semibold text-gray-700">
@@ -228,12 +226,12 @@ export const DisposalManagement: React.FC = () => {
                             <div className="flex flex-col py-1">
                               <span className="font-medium text-gray-800">{category.label}</span>
                               <span className="text-xs text-gray-500">{category.description}</span>
-                            </div>
+                        </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
+                        </div>
                 </CardContent>
               </Card>
 
@@ -264,9 +262,9 @@ export const DisposalManagement: React.FC = () => {
                             placeholder="Enter days old threshold"
                             min="1"
                           />
-                        </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
                   )}
 
                   {/* Disposal Configuration */}
@@ -278,7 +276,7 @@ export const DisposalManagement: React.FC = () => {
                           Filter Items for Disposal
                         </CardTitle>
                         <p className="text-sm text-gray-600">Configure criteria for selecting items</p>
-                      </CardHeader>
+                    </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="space-y-2">
                           <Label className="text-sm font-semibold text-gray-700">Selected Reason</Label>
@@ -294,8 +292,8 @@ export const DisposalManagement: React.FC = () => {
                             <Label className="text-sm font-semibold text-gray-700">Age Threshold</Label>
                             <div className="p-3 bg-white rounded-lg border border-gray-200">
                               <span className="text-sm text-gray-600">{customDaysOld} days or older</span>
-                            </div>
-                          </div>
+                        </div>
+                      </div>
                         )}
                       </CardContent>
                     </Card>
@@ -337,8 +335,8 @@ export const DisposalManagement: React.FC = () => {
                             min="0"
                             step="0.01"
                           />
-                        </div>
-                        
+                      </div>
+
                         <div className="space-y-2">
                           <Label htmlFor="disposalNotes" className="text-sm font-semibold text-gray-700">
                             Notes
@@ -349,22 +347,22 @@ export const DisposalManagement: React.FC = () => {
                             onChange={(e) => setDisposalNotes(e.target.value)}
                             className="h-12 bg-white border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors"
                             placeholder="Additional notes (optional)"
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                  {/* Inventory Items */}
-                  <Card className="overflow-x-hidden">
-                    <CardHeader className="pb-4">
+                {/* Inventory Items */}
+                <Card className="overflow-x-hidden">
+                  <CardHeader className="pb-4">
                       <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-gray-600" />
                         Available Items for Disposal ({inventoryItems.length})
                       </CardTitle>
                       <p className="text-sm text-gray-600">Select items to include in this disposal</p>
-                    </CardHeader>
-                    <CardContent>
+                  </CardHeader>
+                  <CardContent>
                       {inventoryItems.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                           <Trash2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -386,51 +384,51 @@ export const DisposalManagement: React.FC = () => {
                                 <div className="flex items-center justify-between mb-2">
                                   <Badge variant="outline" className="text-xs">
                                     {item.batchNumber}
-                                  </Badge>
+                                      </Badge>
                                   <Badge variant="secondary" className="text-xs">
                                     Size {item.sizeClass}
-                                  </Badge>
-                                </div>
-                                
+                                </Badge>
+                            </div>
+                            
                                 <div className="space-y-1 text-sm">
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Weight:</span>
                                     <span className="font-medium">{item.weightKg.toFixed(2)} kg</span>
-                                  </div>
+                                          </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Location:</span>
                                     <span className="font-medium">{item.storageLocation}</span>
-                                  </div>
+                                          </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Age:</span>
                                     <span className="font-medium">{item.daysInStorage} days</span>
-                                  </div>
+                                        </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Reason:</span>
                                     <span className="font-medium text-red-600">{item.disposalReason}</span>
-                                  </div>
-                                </div>
+                                      </div>
+                                    </div>
                                 
                                 {selectedItems.includes(item.id) && (
                                   <div className="mt-2 text-center">
                                     <Badge className="bg-red-600 text-white">Selected</Badge>
-                                  </div>
-                                )}
+                              </div>
+                            )}
                               </CardContent>
                             </Card>
                           ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                          </div>
+                    )}
+                  </CardContent>
+                </Card>
                 </div>
               )}
-            </div>
+              </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                Cancel
-              </Button>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
               {ageCategory && ageCategory !== "" && (
                 <Button 
                   onClick={handleCreateDisposal} 
@@ -440,9 +438,9 @@ export const DisposalManagement: React.FC = () => {
                   {creatingDisposal ? "Processing..." : "Create Disposal"}
                 </Button>
               )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -507,7 +505,7 @@ export const DisposalManagement: React.FC = () => {
                 <p>No disposal records found</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+          <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
@@ -527,15 +525,15 @@ export const DisposalManagement: React.FC = () => {
                         <td className="p-2">{record.disposal_cost.toFixed(2)}</td>
                         <td className="p-2">
                           <Badge variant={record.status === 'completed' ? 'default' : 'secondary'}>
-                            {record.status}
-                          </Badge>
+                        {record.status}
+                      </Badge>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
-            )}
+            </div>
+          )}
           </CardContent>
         </Card>
       </div>
