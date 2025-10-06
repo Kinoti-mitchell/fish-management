@@ -106,12 +106,28 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
     try {
       console.log('🔄 Loading sorting data...');
       
-      // Load data from database with optimized queries
-      const [thresholds, batches, records] = await Promise.all([
+      // Load data from database with optimized queries and better error handling
+      const [thresholdsResult, batchesResult, recordsResult] = await Promise.allSettled([
         sortingService.getSizeClassThresholds(),
         sortingService.getSortingBatches({ status: 'completed', limit: 20 }), // Only get recent completed batches
         sortingService.getProcessingRecordsReadyForSorting()
       ]);
+
+      // Handle each result individually
+      const thresholds = thresholdsResult.status === 'fulfilled' ? thresholdsResult.value : [];
+      const batches = batchesResult.status === 'fulfilled' ? batchesResult.value : [];
+      const records = recordsResult.status === 'fulfilled' ? recordsResult.value : [];
+
+      // Log any failed requests
+      if (thresholdsResult.status === 'rejected') {
+        console.warn('Failed to load size class thresholds:', thresholdsResult.reason);
+      }
+      if (batchesResult.status === 'rejected') {
+        console.warn('Failed to load sorting batches:', batchesResult.reason);
+      }
+      if (recordsResult.status === 'rejected') {
+        console.warn('Failed to load processing records:', recordsResult.reason);
+      }
 
       console.log('📊 Data loaded:', {
         thresholds: thresholds.length,
@@ -535,6 +551,37 @@ const SortingManagement: React.FC<SortingManagementProps> = ({ onNavigate }) => 
     setViewDetailsDialogOpen(true);
   };
 
+
+  // Show loading state
+  if (loading && processingRecords.length === 0 && sortingBatches.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading sorting data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && processingRecords.length === 0 && sortingBatches.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Data</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadData} className="bg-blue-600 hover:bg-blue-700">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 content-container">
