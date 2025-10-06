@@ -16,7 +16,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -119,12 +118,10 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
               </div>
 
               <CardTitle className="text-2xl font-semibold text-center text-gray-900">
-                {isSignUp ? "Create Account" : "Welcome Back"}
+                Welcome Back
               </CardTitle>
               <p className="text-center text-gray-600 text-sm">
-                {isSignUp
-                  ? "Start managing your fish operations"
-                  : "Sign in to your account"}
+                Sign in to your account
               </p>
             </CardHeader>
 
@@ -222,23 +219,10 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
                       Please wait...
                     </div>
                   ) : (
-                    isSignUp ? "Create Account" : "Sign In"
+                    "Sign In"
                   )}
                 </Button>
 
-                <div className="text-center text-sm text-gray-600">
-                  {isSignUp
-                    ? "Already have an account?"
-                    : "Don't have an account?"}{" "}
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="p-0 h-auto text-blue-600"
-                    onClick={() => setIsSignUp(!isSignUp)}
-                  >
-                    {isSignUp ? "Sign in" : "Sign up"}
-                  </Button>
-                </div>
               </form>
             </CardContent>
           </Card>
