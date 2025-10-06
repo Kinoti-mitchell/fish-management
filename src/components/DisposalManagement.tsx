@@ -817,42 +817,53 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
               </DialogHeader>
               
               <div className="space-y-4">
-                {/* Disposal Configuration */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 max-w-full overflow-x-hidden">
-                  <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                        <Package className="w-5 h-5 text-blue-600" />
-                        Filter Items for Disposal
-                      </CardTitle>
-                      <p className="text-sm text-gray-600">Select the criteria for items to dispose</p>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="ageCategory" className="text-sm font-semibold text-gray-700">
-                            Disposal Reason *
-                          </Label>
-                          <Select value={ageCategory} onValueChange={setAgeCategory}>
-                            <SelectTrigger className="h-12 bg-white border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors">
-                              <SelectValue placeholder="Select disposal reason" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {ageCategories.map((category) => (
-                                <SelectItem key={category.value} value={category.value}>
-                                  <div className="flex flex-col py-1">
-                                    <span className="font-medium text-gray-800">{category.label}</span>
-                                    <span className="text-xs text-gray-500">{category.description}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        {/* Custom Age Input - Show for custom age reason */}
-                        {ageCategory === "custom_age" && (
-                          <div className="space-y-2 p-4 bg-white rounded-lg border border-gray-200">
+                {/* First Step - Select Disposal Reason */}
+                <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 max-w-md mx-auto">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                      <Package className="w-5 h-5 text-blue-600" />
+                      Select Disposal Reason
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">Choose why you want to dispose items</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label htmlFor="ageCategory" className="text-sm font-semibold text-gray-700">
+                        Disposal Reason *
+                      </Label>
+                      <Select value={ageCategory} onValueChange={setAgeCategory}>
+                        <SelectTrigger className="h-12 bg-white border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors">
+                          <SelectValue placeholder="Select disposal reason" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ageCategories.map((category) => (
+                            <SelectItem key={category.value} value={category.value}>
+                              <div className="flex flex-col py-1">
+                                <span className="font-medium text-gray-800">{category.label}</span>
+                                <span className="text-xs text-gray-500">{category.description}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Rest of the form - Show only after reason is selected */}
+                {ageCategory && ageCategory !== "" && (
+                  <div className="space-y-4">
+                    {/* Custom Age Input - Show for custom age reason */}
+                    {ageCategory === "custom_age" && (
+                      <Card className="shadow-lg border-0 bg-gradient-to-br from-yellow-50 to-orange-50 max-w-md mx-auto">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-yellow-600" />
+                            Set Age Threshold
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
                             <Label htmlFor="customDaysOld" className="text-sm font-semibold text-gray-700">
                               Days Old Threshold
                             </Label>
@@ -862,18 +873,54 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                               value={customDaysOld}
                               onChange={(e) => setCustomDaysOld(Number(e.target.value))}
                               placeholder="20"
-                              className="h-10 border-2 border-gray-200 focus:border-blue-500"
+                              className="h-10 border-2 border-gray-200 focus:border-yellow-500"
                               min="1"
                             />
                             <p className="text-xs text-gray-500">
                               Show items older than this many days
                             </p>
                           </div>
-                        )}
-                      </div>
-                      
-                    </CardContent>
-                  </Card>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Disposal Configuration */}
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 max-w-full overflow-x-hidden">
+                      <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                            <Package className="w-5 h-5 text-blue-600" />
+                            Filter Items for Disposal
+                          </CardTitle>
+                          <p className="text-sm text-gray-600">Select the criteria for items to dispose</p>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="p-4 bg-white rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="text-sm">
+                                {ageCategory === "all" 
+                                  ? 'All Items' 
+                                  : ageCategory === "inactive_storage"
+                                    ? 'Inactive Storage'
+                                    : ageCategory === "custom_age"
+                                      ? `Items ${customDaysOld}+ days old`
+                                      : 'Selected Reason'
+                                }
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {ageCategory === "all" 
+                                ? 'Showing all available items for disposal'
+                                : ageCategory === "inactive_storage"
+                                  ? 'Showing items in inactive storage locations'
+                                  : ageCategory === "custom_age"
+                                    ? `Showing items older than ${customDaysOld} days`
+                                    : 'Items will be filtered based on your selection'
+                              }
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
 
                   {/* Disposal Details */}
                   <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
@@ -1138,18 +1185,21 @@ export default function DisposalManagement({ onNavigate }: DisposalManagementPro
                   </CardContent>
                 </Card>
               </div>
+                )}
 
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleCreateDisposal} 
-                  className="bg-red-600 hover:bg-red-700"
-                  disabled={creatingDisposal}
-                >
-                  {creatingDisposal ? "Processing..." : "Create Disposal"}
-                </Button>
+                {ageCategory && ageCategory !== "" && (
+                  <Button 
+                    onClick={handleCreateDisposal} 
+                    className="bg-red-600 hover:bg-red-700"
+                    disabled={creatingDisposal}
+                  >
+                    {creatingDisposal ? "Processing..." : "Create Disposal"}
+                  </Button>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>
