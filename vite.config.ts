@@ -3,11 +3,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     react(),
   ],
-  base: '/fish-management/',
+  base: command === 'build' ? '/fish-management/' : '/',
   build: {
     target: 'es2015',
     outDir: 'build',
@@ -26,4 +26,4 @@ export default defineConfig({
     port: 3001,
     open: true,
   },
-});
+}));
