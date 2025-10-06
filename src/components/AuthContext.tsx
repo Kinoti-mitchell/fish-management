@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
 
-      // Find user in database
+      // Find user in database with network error handling
       const { data: user, error: userError } = await supabase
         .from('profiles')
         .select('*')
@@ -93,6 +93,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (userError || !user) {
         setLoading(false);
+        
+        // Handle network connection errors
+        if (userError && (
+          userError.message?.includes('fetch') ||
+          userError.message?.includes('network') ||
+          userError.message?.includes('ERR_NETWORK') ||
+          userError.message?.includes('ERR_NAME_NOT_RESOLVED') ||
+          userError.message?.includes('Failed to fetch')
+        )) {
+          return { success: false, error: 'No network connection. Please check your internet connection and try again.' };
+        }
+        
         // Check if it's a "not found" error vs other database errors
         if (userError && userError.code === 'PGRST116') {
           return { success: false, error: 'Email address not found. Please check your email or contact your administrator.' };
@@ -105,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (!passwordValid) {
         setLoading(false);
-        return { success: false, error: 'Incorrect password. Please try again or contact your administrator to reset your password.' };
+        return { success: false, error: 'Wrong password. Please try again or contact your administrator to reset your password.' };
       }
 
       // Create user profile object
@@ -178,6 +190,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: true };
     } catch (error: any) {
       setLoading(false);
+      
+      // Handle network connection errors in the catch block
+      if (error && (
+        error.message?.includes('fetch') ||
+        error.message?.includes('network') ||
+        error.message?.includes('ERR_NETWORK') ||
+        error.message?.includes('ERR_NAME_NOT_RESOLVED') ||
+        error.message?.includes('Failed to fetch') ||
+        error.name === 'TypeError' && error.message?.includes('fetch')
+      )) {
+        return { success: false, error: 'No network connection. Please check your internet connection and try again.' };
+      }
+      
       return { success: false, error: error.message || 'An unexpected error occurred' };
     }
   };

@@ -31,7 +31,15 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
         setError(result.error || "Login failed. Please try again.");
       }
     } catch (err: any) {
-      setError(err.message || "Authentication failed. Please check your connection and try again.");
+      // Handle network errors specifically
+      if (err.message?.includes('fetch') || 
+          err.message?.includes('network') || 
+          err.message?.includes('ERR_NETWORK') ||
+          err.message?.includes('ERR_NAME_NOT_RESOLVED')) {
+        setError("No network connection. Please check your internet connection and try again.");
+      } else {
+        setError(err.message || "Authentication failed. Please check your connection and try again.");
+      }
     } finally {
       setLoading(false);
     }
