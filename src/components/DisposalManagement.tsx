@@ -42,7 +42,7 @@ interface InventoryItem {
   processingDate: string;
 }
 
-export const DisposalManagement: React.FC = () => {
+const DisposalManagement: React.FC = () => {
   const [disposalRecords, setDisposalRecords] = useState<DisposalRecord[]>([]);
   const [disposalStats, setDisposalStats] = useState<DisposalStats>({
     totalDisposals: 0,
@@ -540,3 +540,5 @@ export const DisposalManagement: React.FC = () => {
     </div>
   );
 };
+
+export default DisposalManagement;
