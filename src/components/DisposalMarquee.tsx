@@ -17,17 +17,38 @@ interface DisposalMarqueeProps {
   stats?: DisposalStats;
 }
 
+interface MarqueeItem {
+  id: string;
+  type: string;
+  icon: React.ReactNode;
+  text: string;
+  bgColor: string;
+  textColor: string;
+}
+
 export function DisposalMarquee({ stats }: DisposalMarqueeProps) {
-  const [marqueeItems, setMarqueeItems] = useState<any[]>([]);
+  const [marqueeItems, setMarqueeItems] = useState<MarqueeItem[]>([]);
 
   useEffect(() => {
     // Generate dynamic disposal marquee items using real data
+    // Ensure all values are properly converted to primitives to avoid React error #31
+    const safeStats = {
+      totalDisposals: Number(stats?.totalDisposals) || 0,
+      totalDisposedWeight: Number(stats?.totalDisposedWeight) || 0,
+      totalDisposalCost: Number(stats?.totalDisposalCost) || 0,
+      pendingDisposals: Number(stats?.pendingDisposals) || 0,
+      recentDisposals: Number(stats?.recentDisposals) || 0,
+      averageDisposalAge: Number(stats?.averageDisposalAge) || 0,
+      monthlyDisposalTrend: Number(stats?.monthlyDisposalTrend) || 0,
+      topDisposalReason: String(stats?.topDisposalReason || 'Age')
+    };
+
     const items = [
       {
         id: '1',
         type: 'warning',
         icon: <Trash2 className="h-5 w-5" />,
-        text: `🗑️ Total Disposals: ${stats?.totalDisposals || 0} records | ${(stats?.totalDisposedWeight || 0).toFixed(1)}kg disposed`,
+        text: `🗑️ Total Disposals: ${safeStats.totalDisposals} records | ${safeStats.totalDisposedWeight.toFixed(1)}kg disposed`,
         bgColor: "bg-orange-100",
         textColor: "text-orange-800"
       },
@@ -35,7 +56,7 @@ export function DisposalMarquee({ stats }: DisposalMarqueeProps) {
         id: '2',
         type: 'info',
         icon: <DollarSign className="h-5 w-5" />,
-        text: `💰 Disposal Costs: KES ${(stats?.totalDisposalCost || 0).toLocaleString()} total cost | ${(stats?.averageDisposalAge || 0).toFixed(1)} days avg age`,
+        text: `💰 Disposal Costs: KES ${safeStats.totalDisposalCost.toLocaleString()} total cost | ${safeStats.averageDisposalAge.toFixed(1)} days avg age`,
         bgColor: "bg-red-100",
         textColor: "text-red-800"
       },
@@ -43,7 +64,7 @@ export function DisposalMarquee({ stats }: DisposalMarqueeProps) {
         id: '3',
         type: 'warning',
         icon: <AlertTriangle className="h-5 w-5" />,
-        text: `⚠️ Pending Disposals: ${stats?.pendingDisposals || 0} awaiting approval | ${stats?.recentDisposals || 0} this week`,
+        text: `⚠️ Pending Disposals: ${safeStats.pendingDisposals} awaiting approval | ${safeStats.recentDisposals} this week`,
         bgColor: "bg-yellow-100",
         textColor: "text-yellow-800"
       },
@@ -51,7 +72,7 @@ export function DisposalMarquee({ stats }: DisposalMarqueeProps) {
         id: '4',
         type: 'info',
         icon: <TrendingDown className="h-5 w-5" />,
-        text: `📉 Disposal Trend: ${stats?.monthlyDisposalTrend || 0}% change this month | Top reason: ${stats?.topDisposalReason || 'Age'}`,
+        text: `📉 Disposal Trend: ${safeStats.monthlyDisposalTrend}% change this month | Top reason: ${safeStats.topDisposalReason}`,
         bgColor: "bg-purple-100",
         textColor: "text-purple-800"
       },
@@ -59,7 +80,7 @@ export function DisposalMarquee({ stats }: DisposalMarqueeProps) {
         id: '5',
         type: 'info',
         icon: <Clock className="h-5 w-5" />,
-        text: `⏰ Average Age: ${(stats?.averageDisposalAge || 0).toFixed(1)} days before disposal | Quality control active`,
+        text: `⏰ Average Age: ${safeStats.averageDisposalAge.toFixed(1)} days before disposal | Quality control active`,
         bgColor: "bg-indigo-100",
         textColor: "text-indigo-800"
       },
