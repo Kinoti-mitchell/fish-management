@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -20,6 +20,11 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Debug: Log when error state changes
+  useEffect(() => {
+    console.log('🔍 [LoginPage] Error state changed to:', error);
+  }, [error]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -36,15 +41,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
 
     try {
       console.log('🔍 [LoginPage] Calling onLogin...');
-      
-      // Test: Show error message immediately to verify display works
-      if (email === 'test@test.com') {
-        console.log('🔍 [LoginPage] Test error triggered');
-        setError('This is a test error message to verify display works');
-        setLoading(false);
-        return;
-      }
-      
       const result = await onLogin(email, password);
       console.log('🔍 [LoginPage] Login result:', result);
       
@@ -237,19 +233,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
                   ) : (
                     "Sign In"
                   )}
-                </Button>
-
-                {/* Test button to verify error display works */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={() => {
-                    console.log('🔍 [LoginPage] Test button clicked');
-                    setError('Test error message - this should appear!');
-                  }}
-                >
-                  Test Error Display
                 </Button>
 
               </form>
