@@ -19,7 +19,7 @@ class DisposalService {
     try {
       console.log('🔍 [DisposalService] Fetching disposal statistics...');
 
-      // Get all disposal records
+      // Get all disposal records with better error handling
       const { data: disposalRecords, error: disposalError } = await supabase
         .from('disposal_records')
         .select(`
@@ -30,6 +30,18 @@ class DisposalService {
 
       if (disposalError) {
         console.error('❌ [DisposalService] Error fetching disposal records:', disposalError);
+        
+        // Handle specific error types
+        if (disposalError.message?.includes('relation') && disposalError.message?.includes('does not exist')) {
+          console.warn('⚠️ [DisposalService] Disposal tables may not exist yet');
+          return this.getDefaultStats();
+        }
+        
+        if (disposalError.message?.includes('permission') || disposalError.message?.includes('RLS')) {
+          console.warn('⚠️ [DisposalService] Permission error - disposal tables may need RLS configuration');
+          return this.getDefaultStats();
+        }
+        
         throw disposalError;
       }
 
@@ -114,18 +126,24 @@ class DisposalService {
 
     } catch (error) {
       console.error('❌ [DisposalService] Error getting disposal stats:', error);
-      // Return default stats on error
-      return {
-        totalDisposals: 0,
-        totalDisposedWeight: 0,
-        totalDisposalCost: 0,
-        pendingDisposals: 0,
-        recentDisposals: 0,
-        averageDisposalAge: 0,
-        topDisposalReason: 'Age',
-        monthlyDisposalTrend: 0
-      };
+      return this.getDefaultStats();
     }
+  }
+
+  /**
+   * Get default stats when there are errors
+   */
+  private getDefaultStats(): DisposalStats {
+    return {
+      totalDisposals: 0,
+      totalDisposedWeight: 0,
+      totalDisposalCost: 0,
+      pendingDisposals: 0,
+      recentDisposals: 0,
+      averageDisposalAge: 0,
+      topDisposalReason: 'Age',
+      monthlyDisposalTrend: 0
+    };
   }
 
   /**
@@ -140,7 +158,7 @@ class DisposalService {
           disposal_reason:disposal_reasons(name),
           disposal_items(
             size_class,
-            weight_grams,
+            weight_kg,
             batch_number,
             sorting_result:sorting_results(
               sorting_batch:sorting_batches(batch_number)
@@ -150,7 +168,22 @@ class DisposalService {
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [DisposalService] Error fetching disposal records:', error);
+        
+        // Handle specific error types
+        if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+          console.warn('⚠️ [DisposalService] Disposal tables may not exist yet');
+          return [];
+        }
+        
+        if (error.message?.includes('permission') || error.message?.includes('RLS')) {
+          console.warn('⚠️ [DisposalService] Permission error - disposal tables may need RLS configuration');
+          return [];
+        }
+        
+        throw error;
+      }
       
       // Transform the data to include batch_numbers and size_classes arrays
       const transformedData = (data || []).map(record => ({
