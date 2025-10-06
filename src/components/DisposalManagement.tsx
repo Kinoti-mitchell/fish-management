@@ -115,6 +115,7 @@ const DisposalManagement: React.FC = () => {
       } else if (ageCategory === "inactive_storage") {
         daysOld = 0;
         inactiveStorageOnly = true;
+        includeStorageIssues = false; // Only show inactive storage items
       }
 
       const items = await disposalService.getInventoryForDisposal(
@@ -378,7 +379,11 @@ const DisposalManagement: React.FC = () => {
                         <MapPin className="w-5 h-5 text-gray-600" />
                         Available Items for Disposal ({inventoryItems.length})
                       </CardTitle>
-                      <p className="text-sm text-gray-600">Select items to include in this disposal</p>
+                      <p className="text-sm text-gray-600">
+                        {ageCategory === "all" && "Showing all available items"}
+                        {ageCategory === "custom_age" && `Showing items older than ${customDaysOld} days`}
+                        {ageCategory === "inactive_storage" && "Showing items in inactive storage locations"}
+                      </p>
                   </CardHeader>
                   <CardContent>
                       {inventoryItems.length === 0 ? (
@@ -387,55 +392,83 @@ const DisposalManagement: React.FC = () => {
                           <p>No items found matching your criteria</p>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                          {inventoryItems.map((item) => (
-                            <Card 
-                              key={item.sorting_result_id} 
-                              className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                selectedItems.includes(item.sorting_result_id) 
-                                  ? 'ring-2 ring-red-500 bg-red-50' 
-                                  : 'hover:bg-gray-50'
-                              }`}
-                              onClick={() => toggleItemSelection(item.sorting_result_id)}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <Badge variant="outline" className="text-xs">
-                                    {item.batch_number}
-                                      </Badge>
-                                  <Badge variant="secondary" className="text-xs">
-                                    Size {item.size_class}
-                                </Badge>
-                            </div>
-                            
-                                <div className="space-y-1 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-600">Weight:</span>
-                                    <span className="font-medium">{(item.total_weight_grams / 1000).toFixed(2)} kg</span>
-                                          </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-600">Location:</span>
-                                    <span className="font-medium">{item.storage_location_name}</span>
-                                          </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-600">Age:</span>
-                                    <span className="font-medium">{item.days_in_storage} days</span>
+                        <div className="space-y-4">
+                          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                            Showing {inventoryItems.length} items across {new Set(inventoryItems.map(item => item.storage_location_name)).size} storage locations
+                          </div>
+                          
+                          {/* Group items by storage location */}
+                          {Object.entries(
+                            inventoryItems.reduce((groups, item) => {
+                              const location = item.storage_location_name;
+                              if (!groups[location]) {
+                                groups[location] = [];
+                              }
+                              groups[location].push(item);
+                              return groups;
+                            }, {} as Record<string, typeof inventoryItems>)
+                          ).map(([storageName, items]) => (
+                            <Card key={storageName} className="border-2 border-gray-200">
+                              <CardHeader className="pb-3">
+                                <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="w-5 h-5 text-blue-600" />
+                                    {storageName}
+                                  </div>
+                                  <Badge variant="outline" className="text-sm">
+                                    {items.length} items
+                                  </Badge>
+                                </CardTitle>
+                                <div className="text-sm text-gray-600">
+                                  Total Weight: {(items.reduce((sum, item) => sum + item.total_weight_grams, 0) / 1000).toFixed(2)} kg
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                  {items.map((item) => (
+                                    <Card 
+                                      key={item.sorting_result_id} 
+                                      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                                        selectedItems.includes(item.sorting_result_id) 
+                                          ? 'ring-2 ring-red-500 bg-red-50' 
+                                          : 'hover:bg-gray-50'
+                                      }`}
+                                      onClick={() => toggleItemSelection(item.sorting_result_id)}
+                                    >
+                                      <CardContent className="p-3">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <Badge variant="outline" className="text-xs">
+                                            {item.batch_number}
+                                          </Badge>
+                                          <Badge variant="secondary" className="text-xs">
+                                            Size {item.size_class}
+                                          </Badge>
                                         </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-600">Reason:</span>
-                                    <span className="font-medium text-red-600">{item.disposal_reason}</span>
-                                      </div>
-                                    </div>
-                                
-                                {selectedItems.includes(item.sorting_result_id) && (
-                                  <div className="mt-2 text-center">
-                                    <Badge className="bg-red-600 text-white">Selected</Badge>
-                              </div>
-                            )}
+                                        
+                                        <div className="space-y-1 text-sm">
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600">Weight:</span>
+                                            <span className="font-medium">{(item.total_weight_grams / 1000).toFixed(2)} kg</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600">Age:</span>
+                                            <span className="font-medium">{item.days_in_storage} days</span>
+                                          </div>
+                                        </div>
+                                        
+                                        {selectedItems.includes(item.sorting_result_id) && (
+                                          <div className="mt-2 text-center">
+                                            <Badge className="bg-red-600 text-white text-xs">Selected</Badge>
+                                          </div>
+                                        )}
+                                      </CardContent>
+                                    </Card>
+                                  ))}
+                                </div>
                               </CardContent>
                             </Card>
                           ))}
-                          </div>
+                        </div>
                     )}
                   </CardContent>
                 </Card>
