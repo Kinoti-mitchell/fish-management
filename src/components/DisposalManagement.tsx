@@ -61,8 +61,8 @@ const DisposalManagement: React.FC = () => {
   const [selectedDisposal, setSelectedDisposal] = useState<DisposalRecord | null>(null);
 
   // Form state
-  const [ageCategory, setAgeCategory] = useState<string>("");
-  const [customDaysOld, setCustomDaysOld] = useState<number>(30);
+  const [ageCategory, setAgeCategory] = useState<string>("all");
+  const [customDaysOld, setCustomDaysOld] = useState<number>(7);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [disposalReason, setDisposalReason] = useState<string>("");
   const [disposalCost, setDisposalCost] = useState<number>(0);
@@ -71,18 +71,20 @@ const DisposalManagement: React.FC = () => {
   // Simplified age categories
   const ageCategories = [
     { value: "all", label: "All Items", description: "Show all available items", days: 0 },
+    { value: "7_days", label: "7+ Days Old", description: "Items older than 7 days", days: 7 },
+    { value: "14_days", label: "14+ Days Old", description: "Items older than 14 days", days: 14 },
+    { value: "30_days", label: "30+ Days Old", description: "Items older than 30 days", days: 30 },
     { value: "custom_age", label: "Custom Age", description: "Items older than specified days", days: 0 },
     { value: "inactive_storage", label: "Inactive Storage", description: "Items in inactive storage locations", days: 0 }
   ];
 
   useEffect(() => {
     loadDisposalData();
+    loadInventoryForDisposal(); // Load inventory immediately
   }, []);
 
   useEffect(() => {
-    if (ageCategory && ageCategory !== "") {
-      loadInventoryForDisposal();
-    }
+    loadInventoryForDisposal();
   }, [ageCategory, customDaysOld]);
 
   const loadDisposalData = async () => {
@@ -103,18 +105,30 @@ const DisposalManagement: React.FC = () => {
 
   const loadInventoryForDisposal = async () => {
     try {
+      let daysOld = 0;
       let maxDaysOld: number | undefined;
       let inactiveStorageOnly = false;
+      let includeStorageIssues = false;
 
-      if (ageCategory === "custom_age") {
-        maxDaysOld = customDaysOld;
+      if (ageCategory === "all") {
+        daysOld = 0; // Show all items
+        includeStorageIssues = true;
+      } else if (ageCategory === "7_days") {
+        daysOld = 7;
+      } else if (ageCategory === "14_days") {
+        daysOld = 14;
+      } else if (ageCategory === "30_days") {
+        daysOld = 30;
+      } else if (ageCategory === "custom_age") {
+        daysOld = customDaysOld;
       } else if (ageCategory === "inactive_storage") {
+        daysOld = 0;
         inactiveStorageOnly = true;
       }
 
       const items = await disposalService.getInventoryForDisposal(
-        30, // daysOld
-        true, // includeStorageIssues
+        daysOld,
+        includeStorageIssues,
         maxDaysOld,
         inactiveStorageOnly
       );
@@ -202,23 +216,30 @@ const DisposalManagement: React.FC = () => {
               </DialogHeader>
               
               <div className="space-y-4">
-              {/* First Step - Select Disposal Reason */}
+              {/* First Step - Select Filter Criteria */}
               <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 max-w-md mx-auto">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                     <Package className="w-5 h-5 text-blue-600" />
-                    Select Disposal Reason
+                    Select Filter Criteria
                   </CardTitle>
-                  <p className="text-sm text-gray-600">Choose why you want to dispose items</p>
+                  <p className="text-sm text-gray-600">Choose criteria for selecting items to dispose</p>
                     </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     <Label htmlFor="ageCategory" className="text-sm font-semibold text-gray-700">
-                      Disposal Reason *
+                      Filter Criteria *
                     </Label>
-                    <Select value={ageCategory} onValueChange={setAgeCategory}>
+                    <Select value={ageCategory} onValueChange={(value) => {
+                      setAgeCategory(value);
+                      // Auto-populate disposal reason based on selection
+                      const category = ageCategories.find(cat => cat.value === value);
+                      if (category) {
+                        setDisposalReason(category.label);
+                      }
+                    }}>
                       <SelectTrigger className="h-12 bg-white border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors">
-                        <SelectValue placeholder="Select disposal reason" />
+                        <SelectValue placeholder="Select filter criteria" />
                       </SelectTrigger>
                       <SelectContent>
                         {ageCategories.map((category) => (
@@ -316,8 +337,9 @@ const DisposalManagement: React.FC = () => {
                             id="disposalReason"
                             value={disposalReason}
                             onChange={(e) => setDisposalReason(e.target.value)}
-                            className="h-12 bg-white border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors"
-                            placeholder="Enter disposal reason"
+                            className="h-12 bg-gray-50 border-2 border-gray-200 text-gray-700"
+                            placeholder="Disposal reason will be set based on your filter criteria"
+                            readOnly
                           />
                         </div>
                         
