@@ -474,10 +474,25 @@ class DisposalService {
 
       console.log('✅ [DisposalService] Disposal record created:', disposalRecord.id);
 
-      // Get the sorting results to get size_class information
+      // Get the sorting results with all required information
       const { data: sortingResults, error: sortingError } = await supabase
         .from('sorting_results')
-        .select('id, size_class, total_weight_grams, sorting_batch:sorting_batches(batch_number)')
+        .select(`
+          id, 
+          size_class, 
+          total_weight_grams,
+          storage_location_id,
+          created_at,
+          sorting_batch:sorting_batches(
+            batch_number,
+            processing_record:processing_records(
+              warehouse_entry:warehouse_entries(
+                farmers(name)
+              )
+            )
+          ),
+          storage_locations(name)
+        `)
         .in('id', disposalData.selectedItems);
 
       if (sortingError) {
@@ -485,14 +500,28 @@ class DisposalService {
         throw sortingError;
       }
 
-      // Create disposal items for each selected item with size_class
-      const disposalItems = sortingResults.map(result => ({
-        disposal_record_id: disposalRecord.id,
-        sorting_result_id: result.id,
-        size_class: result.size_class,
-        weight_grams: result.total_weight_grams,
-        batch_number: result.sorting_batch?.batch_number || 'Unknown'
-      }));
+      // Create disposal items for each selected item with all required fields
+      const disposalItems = sortingResults.map(result => {
+        const processingDate = result.sorting_batch?.processing_record?.warehouse_entry?.created_at || 
+                              result.created_at;
+        const farmerName = result.sorting_batch?.processing_record?.warehouse_entry?.farmers?.name || 
+                          'Unknown Farmer';
+        const storageLocationName = result.storage_locations?.name || 'Unknown Storage';
+        
+        return {
+          disposal_record_id: disposalRecord.id,
+          sorting_result_id: result.id,
+          size_class: result.size_class,
+          weight_kg: result.total_weight_grams / 1000, // Convert grams to kg
+          batch_number: result.sorting_batch?.batch_number || 'Unknown',
+          storage_location_name: storageLocationName,
+          farmer_name: farmerName,
+          processing_date: processingDate ? processingDate.split('T')[0] : new Date().toISOString().split('T')[0],
+          quality_notes: `Disposed from ${storageLocationName} - ${disposalData.disposalReason}`,
+          disposal_reason: disposalData.disposalReason,
+          status: 'pending'
+        };
+      });
 
       const { error: itemsError } = await supabase
         .from('disposal_items')
