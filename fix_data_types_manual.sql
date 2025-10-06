@@ -54,3 +54,4 @@ AND column_name IN ('requested_quantity', 'total_value')
 AND table_schema = 'public'
 ORDER BY ordinal_position;
 
+

@@ -172,7 +172,7 @@ class DisposalService {
   /**
    * Get inventory items eligible for disposal with improved filtering
    */
-  async getInventoryForDisposal(daysOld = 30, includeStorageIssues = true, maxDaysOld?: number, inactiveStorageOnly = false) {
+  async getInventoryForDisposal(daysOld = 30, includeStorageIssues = true, maxDaysOld?: number, inactiveStorageOnly = false, fromDate?: string, toDate?: string) {
     try {
       console.log('🔍 [DisposalService] Getting inventory for disposal with improved filtering...');
       console.log('📊 [DisposalService] Filter criteria:', { daysOld, includeStorageIssues });
@@ -283,6 +283,26 @@ class DisposalService {
         } else {
           // Single threshold: items older than daysOld
           isOldEnough = daysInStorage >= daysOld;
+        }
+        
+        // Check date range criteria if provided
+        if (fromDate || toDate) {
+          const processDateStr = processingDate;
+          let inDateRange = true;
+          
+          if (fromDate && processDateStr < fromDate) {
+            inDateRange = false;
+          }
+          
+          if (toDate && processDateStr > toDate) {
+            inDateRange = false;
+          }
+          
+          // If date range is specified, it overrides age criteria
+          if (!inDateRange) {
+            console.log('❌ [DisposalService] Item filtered out - not in date range:', result.id, processDateStr, 'from:', fromDate, 'to:', toDate);
+            return false;
+          }
         }
         
         // Check storage issues

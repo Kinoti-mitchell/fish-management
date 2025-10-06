@@ -73,3 +73,4 @@ WHERE tablename = 'warehouse_entries';
 -- 9. Show success message
 SELECT 'sorting_results (inventory) RLS fix completed successfully' as status;
 
+

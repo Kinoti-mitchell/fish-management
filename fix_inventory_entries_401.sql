@@ -38,3 +38,4 @@ SELECT
     COUNT(*) as record_count
 FROM inventory_entries;
 
+
