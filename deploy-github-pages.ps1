@@ -28,6 +28,7 @@ $indexContent = @"
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- Vite will inject the correct asset paths during build -->
+    <script type="module" src="/src/main.tsx"></script>
   </head>
 
   <body>
