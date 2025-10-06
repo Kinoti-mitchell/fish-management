@@ -9,13 +9,11 @@ export default defineConfig({
   ],
   base: process.env.NODE_ENV === 'production' ? '/fish-management/' : '/',
   build: {
-    target: 'esnext',
+    target: 'es2015',
     outDir: 'build',
     assetsDir: 'assets',
     rollupOptions: {
-      input: {
-        main: './index.html'
-      }
+      input: './index.html'
     }
   },
   resolve: {

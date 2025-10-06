@@ -203,7 +203,7 @@ class DisposalService {
         storageMap.set(location.id, location);
       });
 
-      // Build the main query with better filtering
+      // Build the main query with better filtering - simplified to avoid permission issues
       let query = supabase
         .from('sorting_results')
         .select(`
@@ -212,21 +212,12 @@ class DisposalService {
           total_pieces,
           total_weight_grams,
           storage_location_id,
+          created_at,
           sorting_batch:sorting_batches(
             id,
             batch_number,
             status,
-            created_at,
-            processing_record:processing_records(
-              id,
-              processing_date,
-              warehouse_entry:warehouse_entries(
-                id,
-                entry_date,
-                farmer_id,
-                farmers(name, phone, location)
-              )
-            )
+            created_at
           )
         `)
         .not('storage_location_id', 'is', null)
@@ -254,9 +245,9 @@ class DisposalService {
           return false;
         }
         
-        // Get processing date
-        const processingDate = result.sorting_batch?.processing_record?.processing_date || 
-                              result.sorting_batch?.created_at?.split('T')[0];
+        // Get processing date - use batch created_at since we simplified the query
+        const processingDate = result.sorting_batch?.created_at?.split('T')[0] || 
+                              result.created_at?.split('T')[0];
         
         if (!processingDate) {
           console.log('❌ [DisposalService] Item filtered out - no processing date:', result.id);
@@ -342,8 +333,8 @@ class DisposalService {
       // Transform items with better disposal reason logic
       const transformedItems = eligibleItems.map((item: any) => {
         const storageLocation = storageMap.get(item.storage_location_id);
-        const processingDate = item.sorting_batch?.processing_record?.processing_date || 
-                              item.sorting_batch?.created_at?.split('T')[0];
+        const processingDate = item.sorting_batch?.created_at?.split('T')[0] || 
+                              item.created_at?.split('T')[0];
         
         const daysInStorage = Math.floor((new Date().getTime() - new Date(processingDate).getTime()) / (1000 * 60 * 60 * 24));
         
