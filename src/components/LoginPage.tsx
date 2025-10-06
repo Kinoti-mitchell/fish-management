@@ -29,7 +29,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
     console.log('🔍 [LoginPage] handleSubmit called!');
     e.preventDefault();
     e.stopPropagation();
-    e.stopImmediatePropagation();
     
     console.log('🔍 [LoginPage] Form submitted with:', { email, password: '***' });
     
