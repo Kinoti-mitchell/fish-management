@@ -137,10 +137,6 @@ const DisposalManagement: React.FC = () => {
       return;
     }
 
-    if (!disposalReason.trim()) {
-      alert('Please select a disposal reason');
-      return;
-    }
 
     try {
       setCreatingDisposal(true);
@@ -204,7 +200,7 @@ const DisposalManagement: React.FC = () => {
         </div>
         
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden">
+            <DialogContent className="max-w-6xl w-[95vw] max-h-[95vh] overflow-hidden flex flex-col">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold">Create New Disposal Record</DialogTitle>
                 <DialogDescription>
@@ -212,7 +208,7 @@ const DisposalManagement: React.FC = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4">
+              <div className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
               {/* First Step - Select Filter Criteria */}
               <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 max-w-md mx-auto">
                 <CardHeader className="pb-4">
@@ -296,14 +292,6 @@ const DisposalManagement: React.FC = () => {
                         <p className="text-sm text-gray-600">Configure criteria for selecting items</p>
                     </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-semibold text-gray-700">Selected Reason</Label>
-                          <div className="p-3 bg-white rounded-lg border border-gray-200">
-                            <Badge variant="secondary" className="text-sm">
-                              {ageCategories.find(cat => cat.value === ageCategory)?.label}
-                            </Badge>
-                          </div>
-                        </div>
                         
                         {ageCategory === "custom_age" && (
                           <div className="space-y-2">
@@ -326,19 +314,6 @@ const DisposalManagement: React.FC = () => {
                         <p className="text-sm text-gray-600">Provide disposal information</p>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="disposalReason" className="text-sm font-semibold text-gray-700">
-                            Disposal Reason *
-                          </Label>
-                          <Input
-                            id="disposalReason"
-                            value={disposalReason}
-                            onChange={(e) => setDisposalReason(e.target.value)}
-                            className="h-12 bg-gray-50 border-2 border-gray-200 text-gray-700"
-                            placeholder="Disposal reason will be set based on your filter criteria"
-                            readOnly
-                          />
-                        </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="disposalCost" className="text-sm font-semibold text-gray-700">
@@ -373,7 +348,7 @@ const DisposalManagement: React.FC = () => {
                 </div>
 
                 {/* Inventory Items */}
-                <Card className="overflow-x-hidden">
+                <Card className="overflow-hidden">
                   <CardHeader className="pb-4">
                       <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-gray-600" />
@@ -385,7 +360,7 @@ const DisposalManagement: React.FC = () => {
                         {ageCategory === "inactive_storage" && "Showing items in inactive storage locations"}
                       </p>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="max-h-96 overflow-y-auto">
                       {inventoryItems.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                           <Trash2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -424,7 +399,7 @@ const DisposalManagement: React.FC = () => {
                                 </div>
                               </CardHeader>
                               <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-x-hidden">
                                   {items.map((item) => (
                                     <Card 
                                       key={item.sorting_result_id} 
@@ -476,7 +451,7 @@ const DisposalManagement: React.FC = () => {
               )}
               </div>
 
-              <DialogFooter>
+              <DialogFooter className="flex-shrink-0 border-t pt-4">
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                   Cancel
                 </Button>
