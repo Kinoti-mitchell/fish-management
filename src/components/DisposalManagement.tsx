@@ -222,7 +222,7 @@ const DisposalManagement: React.FC = () => {
         </div>
         
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="max-w-6xl w-[95vw] max-h-[95vh] overflow-hidden flex flex-col">
+            <DialogContent className="max-w-6xl w-[95vw] max-h-[95vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold">Create New Disposal Record</DialogTitle>
                 <DialogDescription>
