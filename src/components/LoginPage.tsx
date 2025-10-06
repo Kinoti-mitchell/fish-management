@@ -148,6 +148,12 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
 
             <CardContent className="px-8 pb-8">
               <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                {/* Debug: Test if form is working */}
+                <div style={{display: 'none'}}>
+                  <button type="submit" onClick={() => console.log('🔍 [LoginPage] Form submit button clicked')}>
+                    Hidden Submit
+                  </button>
+                </div>
                 <div className="space-y-3">
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                     Email Address
@@ -242,6 +248,19 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
                   ) : (
                     "Sign In"
                   )}
+                </Button>
+
+                {/* Debug: Direct test button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    console.log('🔍 [LoginPage] Direct test button clicked');
+                    setError('Direct test error message!');
+                  }}
+                >
+                  Test Error Display (Direct)
                 </Button>
 
               </form>
