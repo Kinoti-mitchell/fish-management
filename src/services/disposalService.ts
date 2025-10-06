@@ -301,6 +301,9 @@ class DisposalService {
         if (inactiveStorageOnly) {
           // Only show items in inactive storage
           hasStorageIssues = storageLocation && storageLocation.status !== 'active';
+          // For inactive storage only, ignore age criteria
+          const isEligible = hasStorageIssues;
+          return isEligible;
         } else if (includeStorageIssues) {
           // Show items with any storage issues
           hasStorageIssues = (
@@ -322,7 +325,8 @@ class DisposalService {
           isOldEnough,
           hasStorageIssues,
           storageStatus: storageLocation?.status,
-          isEligible
+          isEligible,
+          inactiveStorageOnly
         });
 
         return isEligible;
