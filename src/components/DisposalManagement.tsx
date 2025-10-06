@@ -461,7 +461,7 @@ const DisposalManagement: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Weight</p>
-                  <p className="text-2xl font-bold text-gray-900">{disposalStats.totalDisposedWeight.toFixed(1)} kg</p>
+                  <p className="text-2xl font-bold text-gray-900">{(disposalStats.totalDisposedWeight || 0).toFixed(1)} kg</p>
                 </div>
                 <Package className="h-8 w-8 text-gray-400" />
               </div>
@@ -473,7 +473,7 @@ const DisposalManagement: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Cost</p>
-                  <p className="text-2xl font-bold text-gray-900">KES {disposalStats.totalDisposalCost.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">KES {(disposalStats.totalDisposalCost || 0).toFixed(2)}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-gray-400" />
               </div>
@@ -485,7 +485,7 @@ const DisposalManagement: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-gray-900">{disposalStats.pendingDisposals}</p>
+                  <p className="text-2xl font-bold text-gray-900">{disposalStats.pendingDisposals || 0}</p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-gray-400" />
               </div>

@@ -30,12 +30,23 @@ export function FishFarmMarquee({ stats }: FishFarmMarqueeProps) {
 
   useEffect(() => {
     // Generate dynamic marquee items using real dashboard data
+    // Ensure all values are properly converted to primitives to avoid React error #31
+    const safeStats = {
+      totalReadyForDispatch: Number(stats?.totalReadyForDispatch) || 0,
+      totalWarehouseEntries: Number(stats?.totalWarehouseEntries) || 0,
+      totalWeight: Number(stats?.totalWeight) || 0,
+      totalOrders: Number(stats?.totalOrders) || 0,
+      totalFarmers: Number(stats?.totalFarmers) || 0,
+      recentProcessingCount: Number(stats?.recentProcessingCount) || 0,
+      totalDispatches: Number(stats?.totalDispatches) || 0
+    };
+
     const items: MarqueeItem[] = [
       {
         id: '1',
         type: 'success',
         icon: <Truck className="h-5 w-5" />,
-        text: `🚚 Ready for Dispatch: ${stats?.totalReadyForDispatch || 0} fish ready for delivery`,
+        text: `🚚 Ready for Dispatch: ${safeStats.totalReadyForDispatch} fish ready for delivery`,
         bgColor: "bg-green-100",
         textColor: "text-green-800"
       },
@@ -43,7 +54,7 @@ export function FishFarmMarquee({ stats }: FishFarmMarqueeProps) {
         id: '2',
         type: 'info',
         icon: <Package className="h-5 w-5" />,
-        text: `📦 Warehouse Entries: ${stats?.totalWarehouseEntries || 0} total entries | ${(stats?.totalWeight || 0).toLocaleString()}kg total weight`,
+        text: `📦 Warehouse Entries: ${safeStats.totalWarehouseEntries} total entries | ${safeStats.totalWeight.toLocaleString()}kg total weight`,
         bgColor: "bg-blue-100",
         textColor: "text-blue-800"
       },
@@ -51,7 +62,7 @@ export function FishFarmMarquee({ stats }: FishFarmMarqueeProps) {
         id: '3',
         type: 'achievement',
         icon: <CheckCircle className="h-5 w-5" />,
-        text: `✅ Processing Success: +${stats?.recentProcessingCount || 0} fish processed this week`,
+        text: `✅ Processing Success: +${safeStats.recentProcessingCount} fish processed this week`,
         bgColor: "bg-purple-100",
         textColor: "text-purple-800"
       },
@@ -59,7 +70,7 @@ export function FishFarmMarquee({ stats }: FishFarmMarqueeProps) {
         id: '4',
         type: 'info',
         icon: <TrendingUp className="h-5 w-5" />,
-        text: `📈 Orders & Dispatches: ${stats?.totalOrders || 0} total orders | ${stats?.totalDispatches || 0} dispatches completed`,
+        text: `📈 Orders & Dispatches: ${safeStats.totalOrders} total orders | ${safeStats.totalDispatches} dispatches completed`,
         bgColor: "bg-indigo-100",
         textColor: "text-indigo-800"
       },
@@ -67,7 +78,7 @@ export function FishFarmMarquee({ stats }: FishFarmMarqueeProps) {
         id: '5',
         type: 'info',
         icon: <Users className="h-5 w-5" />,
-        text: `👥 Farmer Network: ${stats?.totalFarmers || 0} active farmers contributing to production`,
+        text: `👥 Farmer Network: ${safeStats.totalFarmers} active farmers contributing to production`,
         bgColor: "bg-yellow-100",
         textColor: "text-yellow-800"
       },
