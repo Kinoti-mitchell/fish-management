@@ -82,7 +82,7 @@ const DisposalManagement: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadInventoryForDisposal();
+      loadInventoryForDisposal();
   }, [ageCategory, customDaysOld]);
 
   const loadDisposalData = async () => {
@@ -426,6 +426,7 @@ const DisposalManagement: React.FC = () => {
                             }, {} as Record<string, typeof inventoryItems>)
                           ).map(([storageName, items]) => {
                             const isExpanded = expandedStorages.has(storageName);
+                            const typedItems = items as typeof inventoryItems;
                             return (
                             <Card key={storageName} className="border-2 border-gray-200">
                               <CardHeader 
@@ -443,62 +444,62 @@ const DisposalManagement: React.FC = () => {
                                     {storageName}
                                   </div>
                                   <Badge variant="outline" className="text-sm">
-                                    {items.length} items
+                                    {typedItems.length} items
                                   </Badge>
                                 </CardTitle>
                                 <div className="text-sm text-gray-600">
-                                  Total Weight: {(items.reduce((sum, item) => sum + item.total_weight_grams, 0) / 1000).toFixed(2)} kg
+                                  Total Weight: {(typedItems.reduce((sum, item) => sum + item.total_weight_grams, 0) / 1000).toFixed(2)} kg
                                 </div>
                               </CardHeader>
                               {isExpanded && (
                               <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-x-hidden">
-                                  {items.map((item) => (
-                                    <Card 
+                                  {typedItems.map((item) => (
+                            <Card 
                                       key={item.sorting_result_id} 
-                                      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                                         selectedItems.includes(item.sorting_result_id) 
-                                          ? 'ring-2 ring-red-500 bg-red-50' 
-                                          : 'hover:bg-gray-50'
-                                      }`}
+                                  ? 'ring-2 ring-red-500 bg-red-50' 
+                                  : 'hover:bg-gray-50'
+                              }`}
                                       onClick={() => toggleItemSelection(item.sorting_result_id)}
-                                    >
+                            >
                                       <CardContent className="p-3">
-                                        <div className="flex items-center justify-between mb-2">
-                                          <Badge variant="outline" className="text-xs">
+                                <div className="flex items-center justify-between mb-2">
+                                  <Badge variant="outline" className="text-xs">
                                             {item.batch_number}
-                                          </Badge>
-                                          <Badge variant="secondary" className="text-xs">
+                                      </Badge>
+                                  <Badge variant="secondary" className="text-xs">
                                             Size {item.size_class}
-                                          </Badge>
-                                        </div>
-                                        
-                                        <div className="space-y-1 text-sm">
-                                          <div className="flex justify-between">
-                                            <span className="text-gray-600">Weight:</span>
+                                </Badge>
+                            </div>
+                            
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Weight:</span>
                                             <span className="font-medium">{(item.total_weight_grams / 1000).toFixed(2)} kg</span>
                                           </div>
-                                          <div className="flex justify-between">
+                                  <div className="flex justify-between">
                                             <span className="text-gray-600">Age:</span>
                                             <span className="font-medium">{item.days_in_storage} days</span>
-                                          </div>
-                                        </div>
-                                        
+                                      </div>
+                                    </div>
+                                
                                         {selectedItems.includes(item.sorting_result_id) && (
-                                          <div className="mt-2 text-center">
+                                  <div className="mt-2 text-center">
                                             <Badge className="bg-red-600 text-white text-xs">Selected</Badge>
-                                          </div>
-                                        )}
-                                      </CardContent>
-                                    </Card>
-                                  ))}
+                              </div>
+                            )}
+                              </CardContent>
+                            </Card>
+                          ))}
                                 </div>
                               </CardContent>
                               )}
                             </Card>
                             );
                           })}
-                        </div>
+                          </div>
                     )}
                   </CardContent>
                 </Card>
