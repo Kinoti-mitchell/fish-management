@@ -222,7 +222,7 @@ const DisposalManagement: React.FC = () => {
         </div>
         
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="max-w-6xl w-[95vw] h-[95vh] flex flex-col">
+            <DialogContent className="!max-w-6xl !w-[95vw] !h-[95vh] !flex !flex-col !top-4 !left-4 !translate-x-0 !translate-y-0 !max-h-[calc(100vh-2rem)]">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold">Create New Disposal Record</DialogTitle>
                 <DialogDescription>
@@ -230,7 +230,7 @@ const DisposalManagement: React.FC = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-full">
+              <div className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden min-h-0" style={{maxHeight: 'calc(95vh - 200px)'}}>
               {/* First Step - Select Filter Criteria */}
               <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 max-w-md mx-auto">
                 <CardHeader className="pb-4">
