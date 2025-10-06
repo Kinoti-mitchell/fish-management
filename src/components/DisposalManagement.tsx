@@ -32,14 +32,14 @@ interface DisposalStats {
 }
 
 interface InventoryItem {
-  id: string;
-  batchNumber: string;
-  sizeClass: number;
-  weightKg: number;
-  storageLocation: string;
-  daysInStorage: number;
-  disposalReason: string;
-  processingDate: string;
+  sorting_result_id: string;
+  batch_number: string;
+  size_class: number;
+  total_weight_grams: number;
+  storage_location_name: string;
+  days_in_storage: number;
+  disposal_reason: string;
+  processing_date: string;
 }
 
 const DisposalManagement: React.FC = () => {
@@ -372,44 +372,44 @@ const DisposalManagement: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
                           {inventoryItems.map((item) => (
                             <Card 
-                              key={item.id} 
+                              key={item.sorting_result_id} 
                               className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                selectedItems.includes(item.id) 
+                                selectedItems.includes(item.sorting_result_id) 
                                   ? 'ring-2 ring-red-500 bg-red-50' 
                                   : 'hover:bg-gray-50'
                               }`}
-                              onClick={() => toggleItemSelection(item.id)}
+                              onClick={() => toggleItemSelection(item.sorting_result_id)}
                             >
                               <CardContent className="p-4">
                                 <div className="flex items-center justify-between mb-2">
                                   <Badge variant="outline" className="text-xs">
-                                    {item.batchNumber}
+                                    {item.batch_number}
                                       </Badge>
                                   <Badge variant="secondary" className="text-xs">
-                                    Size {item.sizeClass}
+                                    Size {item.size_class}
                                 </Badge>
                             </div>
                             
                                 <div className="space-y-1 text-sm">
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Weight:</span>
-                                    <span className="font-medium">{item.weightKg.toFixed(2)} kg</span>
+                                    <span className="font-medium">{(item.total_weight_grams / 1000).toFixed(2)} kg</span>
                                           </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Location:</span>
-                                    <span className="font-medium">{item.storageLocation}</span>
+                                    <span className="font-medium">{item.storage_location_name}</span>
                                           </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Age:</span>
-                                    <span className="font-medium">{item.daysInStorage} days</span>
+                                    <span className="font-medium">{item.days_in_storage} days</span>
                                         </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Reason:</span>
-                                    <span className="font-medium text-red-600">{item.disposalReason}</span>
+                                    <span className="font-medium text-red-600">{item.disposal_reason}</span>
                                       </div>
                                     </div>
                                 
-                                {selectedItems.includes(item.id) && (
+                                {selectedItems.includes(item.sorting_result_id) && (
                                   <div className="mt-2 text-center">
                                     <Badge className="bg-red-600 text-white">Selected</Badge>
                               </div>
