@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (!passwordValid) {
         setLoading(false);
-        return { success: false, error: 'Wrong password. Please try again or contact your administrator to reset your password.' };
+        return { success: false, error: 'Wrong password kindly try again' };
       }
 
       // Create user profile object
