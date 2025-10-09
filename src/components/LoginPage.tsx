@@ -26,7 +26,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
   }, [error]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('🔍 [LoginPage] handleSubmit called!');
+    console.log('🔍 [LoginPage] handleSubmit called! - CACHE BUST v2');
     e.preventDefault();
     e.stopPropagation();
     

@@ -670,7 +670,7 @@ const DisposalManagement: React.FC = () => {
                 </Button>
               {ageCategory && ageCategory !== "" && (
                 <Button 
-                  onClick={handleCreateDisposal} 
+                  onClick={() => handleCreateDisposal()} 
                   className="bg-red-600 hover:bg-red-700"
                   disabled={creatingDisposal}
                 >

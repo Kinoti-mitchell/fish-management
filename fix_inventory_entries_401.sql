@@ -40,3 +40,4 @@ FROM inventory_entries;
 
 
 
+
